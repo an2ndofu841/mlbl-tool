@@ -87,6 +87,7 @@ export default function CeoPayslipPage() {
         scale: 2,
         logging: false,
         useCORS: true,
+        windowWidth: 1280,
       });
       
       const imgData = canvas.toDataURL("image/png");
@@ -215,7 +216,7 @@ export default function CeoPayslipPage() {
         <div className="shadow-2xl shadow-slate-400/20 rounded-sm overflow-hidden border border-slate-200">
             <div 
             ref={previewRef}
-            className="bg-white p-12 box-border relative"
+            className="bg-white p-12 box-border relative min-w-[210mm]"
             style={{ width: '210mm', minHeight: '297mm', color: '#000000' }}
             >
             {/* プレビューヘッダー */}

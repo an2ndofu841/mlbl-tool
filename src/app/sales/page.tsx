@@ -232,12 +232,13 @@ export default function SalesPage() {
     if (!reportRef.current) return;
     
     try {
-      // const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(reportRef.current, { 
-        scale: 2,
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL("image/png");
+            // const html2canvas = (await import("html2canvas")).default;
+            const canvas = await html2canvas(reportRef.current, { 
+                scale: 2,
+                useCORS: true,
+                windowWidth: 1280, // PCサイズでのレンダリングを強制
+            });
+            const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const width = pdf.internal.pageSize.getWidth();
       const height = (canvas.height * width) / canvas.width;
@@ -767,8 +768,8 @@ export default function SalesPage() {
                     </div>
                 </div>
                 
-                <div className="p-8 flex justify-center bg-slate-500/10">
-                    <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] text-black box-border" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+                <div className="p-4 md:p-8 flex justify-center bg-slate-500/10 overflow-x-auto">
+                    <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] min-w-[210mm] text-black box-border mx-auto" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
                         <h1 className="text-2xl font-bold text-center border-b-2 border-black pb-4 mb-8" style={{ borderColor: '#000000' }}>物販売上日報</h1>
                         
                         <div className="flex justify-between mb-8">
