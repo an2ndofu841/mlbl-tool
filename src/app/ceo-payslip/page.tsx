@@ -212,13 +212,14 @@ export default function CeoPayslipPage() {
       </div>
 
       {/* 右側：プレビュー */}
-      <div className="w-full xl:w-2/3 flex justify-center items-start pt-8 xl:pt-0 overflow-auto">
-        <div className="shadow-2xl shadow-slate-400/20 rounded-sm overflow-hidden border border-slate-200">
-            <div 
-            ref={previewRef}
-            className="bg-white p-12 box-border relative min-w-[210mm]"
-            style={{ width: '210mm', minHeight: '297mm', color: '#000000' }}
-            >
+      <div className="w-full xl:w-2/3 flex justify-center items-start pt-8 xl:pt-0 overflow-hidden">
+        <div className="transform origin-top transition-transform scale-[0.42] h-[125mm] sm:scale-75 sm:h-[223mm] md:scale-100 md:h-auto xl:scale-100 xl:h-auto">
+            <div className="shadow-2xl shadow-slate-400/20 rounded-sm overflow-hidden border border-slate-200">
+                <div 
+                ref={previewRef}
+                className="bg-white p-12 box-border relative min-w-[210mm]"
+                style={{ width: '210mm', minHeight: '297mm', color: '#000000' }}
+                >
             {/* プレビューヘッダー */}
             <div className="text-center mb-12 relative">
                 <h1 className="text-2xl font-serif font-bold tracking-widest border-b-2 border-black pb-2 inline-block px-8 mb-2">支払明細書</h1>
@@ -325,6 +326,7 @@ export default function CeoPayslipPage() {
             </div>
 
             </div>
+        </div>
         </div>
       </div>
     </div>

@@ -768,9 +768,10 @@ export default function SalesPage() {
                     </div>
                 </div>
                 
-                <div className="p-4 md:p-8 flex justify-center bg-slate-500/10 overflow-x-auto">
-                    <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] min-w-[210mm] text-black box-border mx-auto" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-                        <h1 className="text-2xl font-bold text-center border-b-2 border-black pb-4 mb-8" style={{ borderColor: '#000000' }}>物販売上日報</h1>
+                <div className="p-4 md:p-8 flex justify-center bg-slate-500/10 overflow-hidden">
+                    <div className="transform origin-top transition-transform scale-[0.42] h-[125mm] sm:scale-75 sm:h-[223mm] md:scale-100 md:h-auto">
+                        <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] min-w-[210mm] text-black box-border mx-auto" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+                            <h1 className="text-2xl font-bold text-center border-b-2 border-black pb-4 mb-8" style={{ borderColor: '#000000' }}>物販売上日報</h1>
                         
                         <div className="flex justify-between mb-8">
                             <div>
