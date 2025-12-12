@@ -768,8 +768,8 @@ export default function SalesPage() {
                 </div>
                 
                 <div className="p-8 flex justify-center bg-slate-500/10">
-                    <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] text-slate-900 box-border">
-                        <h1 className="text-2xl font-bold text-center border-b-2 border-slate-800 pb-4 mb-8">物販売上日報</h1>
+                    <div ref={reportRef} className="bg-white p-12 shadow-xl min-h-[297mm] w-[210mm] text-black box-border" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+                        <h1 className="text-2xl font-bold text-center border-b-2 border-black pb-4 mb-8" style={{ borderColor: '#000000' }}>物販売上日報</h1>
                         
                         <div className="flex justify-between mb-8">
                             <div>
@@ -778,25 +778,25 @@ export default function SalesPage() {
                                 <p><span className="font-bold">動員設定:</span> {mobilizationMode === "single" ? "通常" : "エリア別"}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-sm text-slate-500">作成日: {new Date().toLocaleString()}</p>
+                                <p className="text-sm text-gray-500" style={{ color: '#6b7280' }}>作成日: {new Date().toLocaleString()}</p>
                             </div>
                         </div>
 
                         {/* サマリー */}
                         <div className="grid grid-cols-2 gap-8 mb-12">
-                            <div className="border-2 border-slate-800 p-6 bg-slate-50">
-                                <h3 className="text-lg font-bold mb-4 border-b border-slate-300 pb-2">売上合計</h3>
+                            <div className="border-2 border-black p-6" style={{ backgroundColor: '#f8fafc', borderColor: '#000000' }}>
+                                <h3 className="text-lg font-bold mb-4 border-b border-gray-300 pb-2" style={{ borderColor: '#d1d5db' }}>売上合計</h3>
                                 <p className="text-4xl font-mono font-bold text-right">¥{totalSales.toLocaleString()}</p>
                             </div>
-                            <div className="border-2 border-slate-800 p-6 bg-slate-50">
-                                <h3 className="text-lg font-bold mb-4 border-b border-slate-300 pb-2">動員数</h3>
+                            <div className="border-2 border-black p-6" style={{ backgroundColor: '#f8fafc', borderColor: '#000000' }}>
+                                <h3 className="text-lg font-bold mb-4 border-b border-gray-300 pb-2" style={{ borderColor: '#d1d5db' }}>動員数</h3>
                                 <div className="text-right">
                                     <p className="text-4xl font-mono font-bold">{totalMobilization} <span className="text-xl font-normal">人</span></p>
-                                    <div className="text-sm text-slate-500 mt-2">
+                                    <div className="text-sm text-gray-500 mt-2" style={{ color: '#6b7280' }}>
                                         (2回し: {totalDoubleDispatch}人)
                                     </div>
                                     {mobilizationMode === "multi" && (
-                                        <div className="text-sm text-slate-500 mt-1">
+                                        <div className="text-sm text-gray-500 mt-1" style={{ color: '#6b7280' }}>
                                             {multiAreaSettings.area1.label}: {mobilizationBreakdown["area1"] || 0}人 / {multiAreaSettings.area2.label}: {mobilizationBreakdown["area2"] || 0}人
                                         </div>
                                     )}
@@ -805,64 +805,64 @@ export default function SalesPage() {
                         </div>
 
                         {/* 商品別内訳 */}
-                        <h3 className="font-bold text-lg mb-4 bg-slate-100 p-2">商品別売上</h3>
-                        <table className="w-full border-collapse border border-slate-300 mb-8">
+                        <h3 className="font-bold text-lg mb-4 p-2" style={{ backgroundColor: '#f1f5f9' }}>商品別売上</h3>
+                        <table className="w-full border-collapse border border-gray-300 mb-8" style={{ borderColor: '#d1d5db' }}>
                             <thead>
-                                <tr className="bg-slate-100">
-                                    <th className="border border-slate-300 p-2 text-left">商品名</th>
-                                    <th className="border border-slate-300 p-2 text-right">単価</th>
-                                    <th className="border border-slate-300 p-2 text-right">販売数</th>
-                                    <th className="border border-slate-300 p-2 text-right">小計</th>
+                                <tr style={{ backgroundColor: '#f1f5f9' }}>
+                                    <th className="border border-gray-300 p-2 text-left" style={{ borderColor: '#d1d5db' }}>商品名</th>
+                                    <th className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>単価</th>
+                                    <th className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>販売数</th>
+                                    <th className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>小計</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {Object.entries(PRODUCTS).map(([key, product]) => (
                                     <tr key={key}>
-                                        <td className="border border-slate-300 p-2">{product.name}</td>
-                                        <td className="border border-slate-300 p-2 text-right">¥{product.price.toLocaleString()}</td>
-                                        <td className="border border-slate-300 p-2 text-right">{itemCounts[key as ProductKey]}</td>
-                                        <td className="border border-slate-300 p-2 text-right">¥{(product.price * itemCounts[key as ProductKey]).toLocaleString()}</td>
+                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>{product.name}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{product.price.toLocaleString()}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>{itemCounts[key as ProductKey]}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{(product.price * itemCounts[key as ProductKey]).toLocaleString()}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
                         {/* 動員リスト */}
-                        <h3 className="font-bold text-lg mb-4 bg-slate-100 p-2">動員リスト</h3>
-                        <table className="w-full border-collapse border border-slate-300 text-sm">
+                        <h3 className="font-bold text-lg mb-4 p-2" style={{ backgroundColor: '#f1f5f9' }}>動員リスト</h3>
+                        <table className="w-full border-collapse border border-gray-300 text-sm" style={{ borderColor: '#d1d5db' }}>
                             <thead>
-                                <tr className="bg-slate-100">
-                                    <th className="border border-slate-300 p-2 text-left">時間</th>
-                                    <th className="border border-slate-300 p-2 text-left">名前</th>
-                                    <th className="border border-slate-300 p-2 text-left">区分</th>
-                                    <th className="border border-slate-300 p-2 text-left">特典</th>
-                                    <th className="border border-slate-300 p-2 text-right">購入額</th>
+                                <tr style={{ backgroundColor: '#f1f5f9' }}>
+                                    <th className="border border-gray-300 p-2 text-left" style={{ borderColor: '#d1d5db' }}>時間</th>
+                                    <th className="border border-gray-300 p-2 text-left" style={{ borderColor: '#d1d5db' }}>名前</th>
+                                    <th className="border border-gray-300 p-2 text-left" style={{ borderColor: '#d1d5db' }}>区分</th>
+                                    <th className="border border-gray-300 p-2 text-left" style={{ borderColor: '#d1d5db' }}>特典</th>
+                                    <th className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>購入額</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {salesHistory.filter(r => r.isMobilization || r.isDoubleDispatch).map(r => (
                                     <tr key={r.id}>
-                                        <td className="border border-slate-300 p-2 font-mono">{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                                        <td className="border border-slate-300 p-2">{r.customerName}</td>
-                                        <td className="border border-slate-300 p-2">
+                                        <td className="border border-gray-300 p-2 font-mono" style={{ borderColor: '#d1d5db' }}>{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>{r.customerName}</td>
+                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>
                                             {r.isMobilization ? (r.mobilizationType === "area1" ? multiAreaSettings.area1.label : r.mobilizationType === "area2" ? multiAreaSettings.area2.label : "一般") : "特典のみ"}
-                                            {r.isDoubleDispatch && <span className="ml-2 bg-indigo-100 px-1 rounded text-xs">2回し</span>}
+                                            {r.isDoubleDispatch && <span style={{ marginLeft: '4px', backgroundColor: '#e0e7ff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px' }}>2回し</span>}
                                         </td>
-                                        <td className="border border-slate-300 p-2">
+                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>
                                             {r.benefit}
                                             {r.isDoubleDispatch && r.benefit && " + "}
                                             {r.isDoubleDispatch && r.doubleDispatchBenefit}
                                         </td>
-                                        <td className="border border-slate-300 p-2 text-right">¥{r.totalAmount.toLocaleString()}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{r.totalAmount.toLocaleString()}</td>
                                     </tr>
                                 ))}
                                 {salesHistory.filter(r => r.isMobilization || r.isDoubleDispatch).length === 0 && (
-                                    <tr><td colSpan={5} className="p-4 text-center text-slate-500">動員記録なし</td></tr>
+                                    <tr><td colSpan={5} className="p-4 text-center text-gray-500" style={{ color: '#6b7280', borderColor: '#d1d5db' }}>動員記録なし</td></tr>
                                 )}
                             </tbody>
                         </table>
 
-                        <div className="mt-12 text-center text-sm text-slate-400">
+                        <div className="mt-12 text-center text-sm text-gray-400" style={{ color: '#9ca3af' }}>
                             株式会社めしあがレーベル 社内業務効率化ツール
                         </div>
                     </div>
