@@ -5,6 +5,7 @@ import { Plus, Minus, Download, Trash2, Save, ShoppingCart, UserCheck, Settings,
 import Link from "next/link";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import html2canvas from "html2canvas";
 
 // jsPDF-autotableの型定義拡張
 declare module "jspdf" {
@@ -231,8 +232,11 @@ export default function SalesPage() {
     if (!reportRef.current) return;
     
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(reportRef.current, { scale: 2 });
+      // const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(reportRef.current, { 
+        scale: 2,
+        useCORS: true,
+      });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const width = pdf.internal.pageSize.getWidth();
