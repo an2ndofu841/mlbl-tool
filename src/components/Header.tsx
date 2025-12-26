@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, Sparkles } from 'lucide-react';
+import { Home, Sparkles, Settings } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -18,6 +18,10 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center gap-4">
+          <Link href="/settings" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors" title="設定">
+            <Settings size={20} />
+          </Link>
+
           <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600">
             <Sparkles size={12} className="text-yellow-500" />
             <span>Ver 1.0</span>

@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Employee } from "@/types";
+import { useSettings } from "@/context/SettingsContext";
 import { Download, RefreshCw, ChevronLeft, Calendar, Wallet, FileText, User } from "lucide-react";
 import Link from "next/link";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 export default function CeoPayslipPage() {
+  const { settings, isLoading: settingsLoading } = useSettings();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -73,10 +75,10 @@ export default function CeoPayslipPage() {
   };
 
   // 自動計算
-  const withLiveIncome = Math.floor(formData.withLiveSales * 0.7); 
-  const withLivePayment = Math.floor(withLiveIncome * 0.25);
+  const withLiveIncome = Math.floor(formData.withLiveSales * (settings.ceoWithLiveRatio / 100)); 
+  const withLivePayment = Math.floor(withLiveIncome * (settings.ceoRewardRatio / 100));
   const totalPayment = formData.operatingExpenses + withLivePayment;
-  const tax = Math.floor(totalPayment * 0.1021);
+  const tax = Math.floor(totalPayment * (settings.taxRate / 100));
   const grandTotal = totalPayment - tax;
 
   const handleDownloadPdf = async () => {
@@ -108,7 +110,7 @@ export default function CeoPayslipPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading...</div>;
+  if (loading || settingsLoading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading...</div>;
 
   return (
     <div className="flex flex-col xl:flex-row gap-8 min-h-screen pb-20">
@@ -233,7 +235,7 @@ export default function CeoPayslipPage() {
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{formData.address}</p>
                 </div>
                 <div className="w-1/2 text-right relative">
-                <h3 className="font-bold text-lg mb-1 tracking-wide">株式会社めしあがレーベル</h3>
+                <h3 className="font-bold text-lg mb-1 tracking-wide">{settings.companyName}</h3>
                 <p className="text-sm text-gray-800">支給日: {formData.paymentDate}</p>
                 
                 {/* 印鑑画像プレースホルダー */}
@@ -286,7 +288,7 @@ export default function CeoPayslipPage() {
                 </thead>
                 <tbody>
                     <tr>
-                    <td className="border border-gray-800 p-2 text-black">源泉所得税 <span className="text-xs text-gray-700 font-medium ml-2">(支給合計の10.21%)</span></td>
+                    <td className="border border-gray-800 p-2 text-black">源泉所得税 <span className="text-xs text-gray-700 font-medium ml-2">(支給合計の{settings.taxRate}%)</span></td>
                     <td className="border border-gray-800 p-2 text-right text-black font-mono text-base">{tax.toLocaleString()}</td>
                     </tr>
                     <tr className="font-bold">

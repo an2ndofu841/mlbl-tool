@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Minus, Download, Trash2, Save, ShoppingCart, UserCheck, Settings, FileText, Calculator, X, Check, ArrowRightLeft, Repeat, Gift } from "lucide-react";
-import Link from "next/link";
+import { Plus, Minus, Trash2, ShoppingCart, UserCheck, Settings, FileText, Calculator, X, Check, Repeat, Gift } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import html2canvas from "html2canvas";
+import { useSettings } from "@/context/SettingsContext";
 
 // jsPDF-autotableの型定義拡張
 declare module "jspdf" {
@@ -13,17 +13,6 @@ declare module "jspdf" {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-// 商品定義
-const PRODUCTS = {
-  signedCheki: { name: "サイン付きチェキ", price: 2000 },
-  normalCheki: { name: "ノーマルチェキ", price: 1000 },
-  groupCheki: { name: "囲みチェキ", price: 3000 },
-  personalSign: { name: "私物サイン", price: 2000 },
-  sugoroku: { name: "すごろく", price: 500 },
-} as const;
-
-type ProductKey = keyof typeof PRODUCTS;
 
 interface SaleRecord {
   id: string;
@@ -37,13 +26,16 @@ interface SaleRecord {
   isDoubleDispatch: boolean;
   doubleDispatchBenefit: string;
 
-  items: Record<ProductKey, number>;
+  items: Record<string, number>;
   totalAmount: number;
 }
 
 type MobilizationMode = "single" | "multi";
 
 export default function SalesPage() {
+  const { settings, isLoading } = useSettings();
+  const products = settings.products;
+
   // 設定
   const [eventName, setEventName] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -64,13 +56,7 @@ export default function SalesPage() {
   const [mobilizationSelection, setMobilizationSelection] = useState<string | null>(null); 
   const [isDoubleDispatchSelected, setIsDoubleDispatchSelected] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const [items, setItems] = useState<Record<ProductKey, number>>({
-    signedCheki: 0,
-    normalCheki: 0,
-    groupCheki: 0,
-    personalSign: 0,
-    sugoroku: 0,
-  });
+  const [items, setItems] = useState<Record<string, number>>({});
 
   // お釣り計算モーダル
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -78,6 +64,21 @@ export default function SalesPage() {
 
   // 売上履歴
   const [salesHistory, setSalesHistory] = useState<SaleRecord[]>([]);
+
+  // 商品リストが変わったらitemsを初期化（まだ存在しないキーを追加）
+  useEffect(() => {
+    if (isLoading) return;
+    
+    setItems(prev => {
+      const newItems = { ...prev };
+      Object.keys(products).forEach(key => {
+        if (typeof newItems[key] === "undefined") {
+          newItems[key] = 0;
+        }
+      });
+      return newItems;
+    });
+  }, [products, isLoading]);
 
   // 初期ロード
   useEffect(() => {
@@ -96,16 +97,18 @@ export default function SalesPage() {
   };
 
   // 数量変更ハンドラ
-  const updateItem = (key: ProductKey, delta: number) => {
+  const updateItem = (key: string, delta: number) => {
     setItems(prev => ({
       ...prev,
-      [key]: Math.max(0, prev[key] + delta)
+      [key]: Math.max(0, (prev[key] || 0) + delta)
     }));
   };
 
   // 合計金額計算
   const currentTotal = Object.entries(items).reduce((sum, [key, count]) => {
-    return sum + (PRODUCTS[key as ProductKey].price * count);
+    const product = products[key];
+    if (!product) return sum;
+    return sum + (product.price * count);
   }, 0);
 
   // 現在選択されている特典内容を取得（表示用配列）
@@ -130,14 +133,6 @@ export default function SalesPage() {
   // 保存用文字列生成
   const getCurrentBenefitString = () => {
     return getCurrentBenefitList().map(b => b.content).join(" + ");
-  };
-
-  const getCurrentAreaLabel = () => {
-    if (!mobilizationSelection) return "";
-    if (mobilizationMode === "single") return "動員";
-    if (mobilizationSelection === "area1") return multiAreaSettings.area1.label;
-    if (mobilizationSelection === "area2") return multiAreaSettings.area2.label;
-    return "動員";
   };
 
   // 会計ボタンクリック（バリデーション～モーダル表示）
@@ -178,12 +173,10 @@ export default function SalesPage() {
     saveHistory(newHistory);
 
     // リセット
-    setItems({
-      signedCheki: 0,
-      normalCheki: 0,
-      groupCheki: 0,
-      personalSign: 0,
-      sugoroku: 0,
+    setItems(prev => {
+        const resetItems: Record<string, number> = {};
+        Object.keys(products).forEach(key => resetItems[key] = 0);
+        return resetItems;
     });
     setMobilizationSelection(null);
     setIsDoubleDispatchSelected(false);
@@ -201,7 +194,10 @@ export default function SalesPage() {
 
   // CSV出力
   const downloadCSV = () => {
-    const header = ["日時", "イベント名", "動員種別", "名前", "動員特典", "2回し特典", ...Object.values(PRODUCTS).map(p => p.name), "合計金額"];
+    // 現在の製品リストをベースにヘッダーを作成
+    const productKeys = Object.keys(products).sort((a, b) => products[a].order - products[b].order);
+    const header = ["日時", "イベント名", "動員種別", "名前", "動員特典", "2回し特典", ...productKeys.map(k => products[k].name), "合計金額"];
+    
     const rows = salesHistory.map(r => {
         return [
             new Date(r.timestamp).toLocaleString(),
@@ -210,7 +206,7 @@ export default function SalesPage() {
             r.customerName,
             r.benefit,
             r.isDoubleDispatch ? r.doubleDispatchBenefit : "",
-            ...Object.keys(PRODUCTS).map(k => r.items[k as ProductKey]),
+            ...productKeys.map(k => r.items[k] || 0),
             r.totalAmount
         ];
     });
@@ -232,7 +228,6 @@ export default function SalesPage() {
     if (!reportRef.current) return;
     
     try {
-            // const html2canvas = (await import("html2canvas")).default;
             const canvas = await html2canvas(reportRef.current, { 
                 scale: 2,
                 useCORS: true,
@@ -263,14 +258,16 @@ export default function SalesPage() {
       return acc;
   }, {} as Record<string, number>);
 
-  const itemCounts = Object.keys(PRODUCTS).reduce((acc, key) => {
-    acc[key as ProductKey] = salesHistory.reduce((sum, r) => sum + r.items[key as ProductKey], 0);
+  const itemCounts = Object.keys(products).reduce((acc, key) => {
+    acc[key] = salesHistory.reduce((sum, r) => sum + (r.items[key] || 0), 0);
     return acc;
-  }, {} as Record<ProductKey, number>);
+  }, {} as Record<string, number>);
 
   // お釣り計算
   const changeAmount = typeof receivedAmount === "number" ? receivedAmount - currentTotal : 0;
   const isEnough = typeof receivedAmount === "number" && receivedAmount >= currentTotal;
+
+  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading...</div>;
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
@@ -509,27 +506,29 @@ export default function SalesPage() {
 
             {/* 商品選択エリア */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(PRODUCTS).map(([key, product]) => (
-                    <div key={key} className={`bg-white p-4 rounded-2xl shadow-sm border-2 transition-all ${items[key as ProductKey] > 0 ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-slate-100'}`}>
+                {Object.entries(products)
+                  .sort(([, a], [, b]) => a.order - b.order)
+                  .map(([key, product]) => (
+                    <div key={key} className={`bg-white p-4 rounded-2xl shadow-sm border-2 transition-all ${items[key] > 0 ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-slate-100'}`}>
                         <div className="flex justify-between items-start mb-2">
                             <div>
                                 <h4 className="font-bold text-slate-800 text-lg">{product.name}</h4>
                                 <p className="text-slate-500 font-mono">¥{product.price.toLocaleString()}</p>
                             </div>
                             <div className="text-3xl font-bold text-indigo-600 font-mono w-12 text-center">
-                                {items[key as ProductKey]}
+                                {items[key] || 0}
                             </div>
                         </div>
                         <div className="flex gap-2 mt-4">
                             <button 
-                                onClick={() => updateItem(key as ProductKey, -1)}
+                                onClick={() => updateItem(key, -1)}
                                 className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 font-bold flex justify-center items-center active:scale-95 transition-transform"
-                                disabled={items[key as ProductKey] <= 0}
+                                disabled={(items[key] || 0) <= 0}
                             >
                                 <Minus size={20} />
                             </button>
                             <button 
-                                onClick={() => updateItem(key as ProductKey, 1)}
+                                onClick={() => updateItem(key, 1)}
                                 className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 font-bold flex justify-center items-center active:scale-95 transition-transform"
                             >
                                 <Plus size={20} />
@@ -550,10 +549,10 @@ export default function SalesPage() {
                 </div>
                 
                 <div className="space-y-2 mb-6 text-sm text-slate-300">
-                    {Object.entries(items).map(([key, count]) => count > 0 && (
+                    {Object.entries(items).map(([key, count]) => count > 0 && products[key] && (
                         <div key={key} className="flex justify-between">
-                            <span>{PRODUCTS[key as ProductKey].name} x{count}</span>
-                            <span>¥{(PRODUCTS[key as ProductKey].price * count).toLocaleString()}</span>
+                            <span>{products[key].name} x{count}</span>
+                            <span>¥{(products[key].price * count).toLocaleString()}</span>
                         </div>
                     ))}
                     {(mobilizationSelection || isDoubleDispatchSelected) && (
@@ -627,9 +626,9 @@ export default function SalesPage() {
                                     </div>
                                 </div>
                                 <div className="text-xs text-slate-500 mt-1">
-                                    {Object.entries(record.items).map(([key, count]) => count > 0 && (
+                                    {Object.entries(record.items).map(([key, count]) => count > 0 && products[key] && (
                                         <span key={key} className="mr-2 inline-block bg-slate-100 px-1.5 py-0.5 rounded">
-                                            {PRODUCTS[key as ProductKey].name} x{count}
+                                            {products[key].name} x{count}
                                         </span>
                                     ))}
                                 </div>
@@ -658,10 +657,10 @@ export default function SalesPage() {
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                         <div className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">お買い上げ内容</div>
                         <div className="space-y-2 mb-4">
-                             {Object.entries(items).map(([key, count]) => count > 0 && (
+                             {Object.entries(items).map(([key, count]) => count > 0 && products[key] && (
                                 <div key={key} className="flex justify-between items-center text-slate-800 font-medium">
-                                    <span>{PRODUCTS[key as ProductKey].name} x {count}</span>
-                                    <span className="font-mono">¥{(PRODUCTS[key as ProductKey].price * count).toLocaleString()}</span>
+                                    <span>{products[key].name} x {count}</span>
+                                    <span className="font-mono">¥{(products[key].price * count).toLocaleString()}</span>
                                 </div>
                             ))}
                         </div>
@@ -818,12 +817,14 @@ export default function SalesPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {Object.entries(PRODUCTS).map(([key, product]) => (
+                                {Object.entries(products)
+                                  .sort(([, a], [, b]) => a.order - b.order)
+                                  .map(([key, product]) => (
                                     <tr key={key}>
                                         <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>{product.name}</td>
                                         <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{product.price.toLocaleString()}</td>
-                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>{itemCounts[key as ProductKey]}</td>
-                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{(product.price * itemCounts[key as ProductKey]).toLocaleString()}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>{itemCounts[key] || 0}</td>
+                                        <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{(product.price * (itemCounts[key] || 0)).toLocaleString()}</td>
                                     </tr>
                                 ))}
                             </tbody>
