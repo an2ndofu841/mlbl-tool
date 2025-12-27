@@ -42,7 +42,7 @@ export default function AddressLabelPage() {
   const isJapan = data.country === "Japan";
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 pb-20 print:min-h-0 print:pb-0 print:bg-white print:m-0 print:p-0">
       {/* 印刷時には非表示にするナビゲーション */}
       <div className="print:hidden">
         <div className="bg-white border-b border-slate-200 px-4 py-4 mb-8">
@@ -248,7 +248,7 @@ export default function AddressLabelPage() {
       </div>
 
       {/* 印刷用レイアウト (画面上は非表示) */}
-      <div className="hidden print:block print:fixed print:top-0 print:left-0 print:z-50 print:h-0 print:overflow-visible">
+      <div className="hidden print:block print:absolute print:top-0 print:left-0 print:z-50">
         <LabelPreview data={data} size={size} isPrint />
       </div>
     </div>

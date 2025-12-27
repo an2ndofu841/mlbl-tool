@@ -43,6 +43,16 @@ input:focus, select:focus, textarea:focus {
     background: white;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Layoutのmainタグの余白を打ち消す */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
   }
   
   /* 印刷時に不要な要素を隠すためのユーティリティ */
