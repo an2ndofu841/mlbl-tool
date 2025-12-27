@@ -110,84 +110,119 @@ export default function ChekiTimerPage() {
         osc.stop(startTime + duration);
     };
 
+    // ループ再生用ヘルパー (3回繰り返して約3秒にする)
+    const playLoop = (pattern: (offset: number) => number) => {
+        let offset = 0;
+        // 1ループあたり約1秒のパターンを3回繰り返す
+        for (let i = 0; i < 3; i++) { 
+            offset = pattern(now + (i * 1.0)); // 1.0秒ごとにループ開始
+        }
+    };
+
     switch (melodyType) {
         case "heroic": // Red: RPGのレベルアップ/ファンファーレ風
-             // C G C E G C (Major Arpeggio)
-             const hBase = 261.63; // C4
-             playTone(now, 0.1, hBase, "square");
-             playTone(now + 0.1, 0.1, hBase * 1.5, "square"); // G
-             playTone(now + 0.2, 0.1, hBase * 2, "square");   // C5
-             playTone(now + 0.3, 0.1, hBase * 2.5, "square"); // E5
-             playTone(now + 0.4, 0.1, hBase * 3, "square");   // G5
-             playTone(now + 0.5, 0.6, hBase * 4, "square");   // C6
+             playLoop((start) => {
+                 const hBase = 261.63; // C4
+                 playTone(start, 0.1, hBase, "square");
+                 playTone(start + 0.1, 0.1, hBase * 1.5, "square"); // G
+                 playTone(start + 0.2, 0.1, hBase * 2, "square");   // C5
+                 playTone(start + 0.3, 0.1, hBase * 2.5, "square"); // E5
+                 playTone(start + 0.4, 0.1, hBase * 3, "square");   // G5
+                 playTone(start + 0.5, 0.4, hBase * 4, "square");   // C6
+                 return 0; // offset計算はloop側で行うため不要
+             });
              break;
 
         case "crystal": // Blue: クリスタルな輝き音 (Sineで高音)
-            const cBase = 523.25; // C5
-            for(let i=0; i<6; i++) {
-                playTone(now + i*0.08, 0.1, cBase + (i * 100), "sine");
-            }
-            playTone(now + 0.5, 0.6, cBase * 2, "sine");
+            playLoop((start) => {
+                const cBase = 523.25; // C5
+                for(let i=0; i<6; i++) {
+                    playTone(start + i*0.08, 0.1, cBase + (i * 100), "sine");
+                }
+                playTone(start + 0.5, 0.4, cBase * 2, "sine");
+                return 0;
+            });
             break;
 
         case "adventure": // Green: 冒険のクリアジングル (3連符っぽいリズム)
-            const aBase = 392.00; // G4
-            playTone(now, 0.12, aBase, "triangle");
-            playTone(now + 0.12, 0.12, aBase * 1.25, "triangle"); // B
-            playTone(now + 0.24, 0.12, aBase * 1.5, "triangle"); // D
-            playTone(now + 0.4, 0.6, aBase * 2, "triangle");     // G5
+            playLoop((start) => {
+                const aBase = 392.00; // G4
+                playTone(start, 0.12, aBase, "triangle");
+                playTone(start + 0.12, 0.12, aBase * 1.25, "triangle"); // B
+                playTone(start + 0.24, 0.12, aBase * 1.5, "triangle"); // D
+                playTone(start + 0.4, 0.5, aBase * 2, "triangle");     // G5
+                return 0;
+            });
             break;
 
         case "coin": // Yellow: コイン大量獲得風 (高速アルペジオ)
-            const yBase = 523.25; // C5
-            playTone(now, 0.08, yBase * 1.25, "square"); // E
-            playTone(now + 0.08, 0.08, yBase * 1.5, "square"); // G
-            playTone(now + 0.16, 0.08, yBase * 2, "square"); // C6
-            playTone(now + 0.24, 0.08, yBase * 2.5, "square"); // E6
-            playTone(now + 0.32, 0.08, yBase * 3, "square"); // G6
-            playTone(now + 0.40, 0.4, yBase * 4, "square"); // C7
+            playLoop((start) => {
+                const yBase = 523.25; // C5
+                playTone(start, 0.08, yBase * 1.25, "square"); // E
+                playTone(start + 0.08, 0.08, yBase * 1.5, "square"); // G
+                playTone(start + 0.16, 0.08, yBase * 2, "square"); // C6
+                playTone(start + 0.24, 0.08, yBase * 2.5, "square"); // E6
+                playTone(start + 0.32, 0.08, yBase * 3, "square"); // G6
+                playTone(start + 0.40, 0.4, yBase * 4, "square"); // C7
+                return 0;
+            });
             break;
         
         case "mystery": // Purple: ダンジョンクリア (短調→長調解決)
-            const mBase = 440.00; // A4
-            playTone(now, 0.15, mBase, "sawtooth");
-            playTone(now + 0.15, 0.15, mBase * 1.2, "sawtooth"); // C5 (Minor 3rd)
-            playTone(now + 0.3, 0.15, mBase * 1.5, "sawtooth");  // E5
-            playTone(now + 0.45, 0.6, mBase * 2, "sawtooth");    // A5
+            playLoop((start) => {
+                const mBase = 440.00; // A4
+                playTone(start, 0.15, mBase, "sawtooth");
+                playTone(start + 0.15, 0.15, mBase * 1.2, "sawtooth"); // C5 (Minor 3rd)
+                playTone(start + 0.3, 0.15, mBase * 1.5, "sawtooth");  // E5
+                playTone(start + 0.45, 0.4, mBase * 2, "sawtooth");    // A5
+                return 0;
+            });
             break;
 
         case "happy": // Pink: アクションゲームのゴール音
-            const pBase = 587.33; // D5
-            playTone(now, 0.1, pBase, "sine");
-            playTone(now + 0.1, 0.1, pBase * 0.8, "sine"); 
-            playTone(now + 0.2, 0.1, pBase, "sine"); 
-            playTone(now + 0.3, 0.1, pBase * 1.25, "sine"); // F#
-            playTone(now + 0.4, 0.5, pBase * 1.5, "sine");  // A
+            playLoop((start) => {
+                const pBase = 587.33; // D5
+                playTone(start, 0.1, pBase, "sine");
+                playTone(start + 0.1, 0.1, pBase * 0.8, "sine"); 
+                playTone(start + 0.2, 0.1, pBase, "sine"); 
+                playTone(start + 0.3, 0.1, pBase * 1.25, "sine"); // F#
+                playTone(start + 0.4, 0.4, pBase * 1.5, "sine");  // A
+                return 0;
+            });
             break;
             
         case "powerup": // Orange: パワーアップ音 (スライド感)
-            const oBase = 349.23; // F4
-            playTone(now, 0.1, oBase, "sawtooth");
-            playTone(now + 0.1, 0.1, oBase * 1.12, "sawtooth"); // G
-            playTone(now + 0.2, 0.1, oBase * 1.25, "sawtooth"); // A
-            playTone(now + 0.3, 0.1, oBase * 1.33, "sawtooth"); // Bb
-            playTone(now + 0.4, 0.1, oBase * 1.5, "sawtooth");  // C
-            playTone(now + 0.5, 0.5, oBase * 2, "sawtooth");    // F5
+            playLoop((start) => {
+                const oBase = 349.23; // F4
+                playTone(start, 0.1, oBase, "sawtooth");
+                playTone(start + 0.1, 0.1, oBase * 1.12, "sawtooth"); // G
+                playTone(start + 0.2, 0.1, oBase * 1.25, "sawtooth"); // A
+                playTone(start + 0.3, 0.1, oBase * 1.33, "sawtooth"); // Bb
+                playTone(start + 0.4, 0.1, oBase * 1.5, "sawtooth");  // C
+                playTone(start + 0.5, 0.4, oBase * 2, "sawtooth");    // F5
+                return 0;
+            });
             break;
             
         case "future": // Cyan: SFゲームの成功音
-             const fBase = 493.88; // B4
-             playTone(now, 0.05, fBase, "square");
-             playTone(now + 0.05, 0.05, fBase * 1.5, "square");
-             playTone(now + 0.1, 0.05, fBase * 2, "square");
-             playTone(now + 0.15, 0.05, fBase * 2.5, "square");
-             playTone(now + 0.2, 0.05, fBase * 3, "square");
-             playTone(now + 0.3, 0.5, fBase * 4, "square");
+             playLoop((start) => {
+                 const fBase = 493.88; // B4
+                 playTone(start, 0.05, fBase, "square");
+                 playTone(start + 0.05, 0.05, fBase * 1.5, "square");
+                 playTone(start + 0.1, 0.05, fBase * 2, "square");
+                 playTone(start + 0.15, 0.05, fBase * 2.5, "square");
+                 playTone(start + 0.2, 0.05, fBase * 3, "square");
+                 playTone(start + 0.3, 0.4, fBase * 4, "square");
+                 return 0;
+            });
             break;
 
         default:
-            playTone(now, 0.2, 440);
-            playTone(now + 0.3, 0.2, 880);
+            playLoop((start) => {
+                playTone(start, 0.2, 440);
+                playTone(start + 0.3, 0.2, 880);
+                return 0;
+            });
             break;
     }
 
