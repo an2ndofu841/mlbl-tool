@@ -283,6 +283,63 @@ export default function SalesPage() {
     return acc;
   }, {} as Record<string, number>);
 
+  // 動員リストの名寄せ集計
+  const getAggregatedMobilizationList = () => {
+    const aggregated: Record<string, {
+      name: string;
+      timestamps: string[];
+      mobilizationType: string | undefined; // 最も優先度の高いものを保持
+      isMobilization: boolean;
+      isDoubleDispatch: boolean;
+      benefits: string[];
+      totalAmount: number;
+    }> = {};
+
+    // 名前がないレコードは除外して集計するか、あるいは「名前なし」として表示するか。
+    // ここでは「動員リスト」なので、名前があるもの（isMobilization or isDoubleDispatch or 名前あり）を対象とする
+    const targetRecords = salesHistory.filter(r => r.customerName && r.customerName.trim() !== "");
+
+    targetRecords.forEach(r => {
+      const name = r.customerName;
+      if (!aggregated[name]) {
+        aggregated[name] = {
+          name,
+          timestamps: [],
+          mobilizationType: undefined,
+          isMobilization: false,
+          isDoubleDispatch: false,
+          benefits: [],
+          totalAmount: 0
+        };
+      }
+
+      aggregated[name].timestamps.push(r.timestamp);
+      aggregated[name].totalAmount += r.totalAmount;
+      
+      if (r.isMobilization) {
+        aggregated[name].isMobilization = true;
+        // 動員タイプの優先度更新 (area1 > area2 > single) ※簡易的な上書き
+        if (!aggregated[name].mobilizationType || r.mobilizationType === "area1") {
+             aggregated[name].mobilizationType = r.mobilizationType;
+        }
+      }
+      
+      if (r.isDoubleDispatch) {
+        aggregated[name].isDoubleDispatch = true;
+      }
+
+      if (r.benefit) aggregated[name].benefits.push(r.benefit);
+      if (r.isDoubleDispatch && r.doubleDispatchBenefit) aggregated[name].benefits.push(r.doubleDispatchBenefit);
+    });
+
+    // 配列に戻してソート（最初のタイムスタンプ順）
+    return Object.values(aggregated).sort((a, b) => {
+        const timeA = a.timestamps.sort()[0];
+        const timeB = b.timestamps.sort()[0];
+        return timeA > timeB ? 1 : -1;
+    });
+  };
+
   // お釣り計算
   const changeAmount = typeof receivedAmount === "number" ? receivedAmount - currentTotal : 0;
   const isEnough = typeof receivedAmount === "number" && receivedAmount >= currentTotal;
