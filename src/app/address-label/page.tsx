@@ -248,7 +248,7 @@ export default function AddressLabelPage() {
       </div>
 
       {/* 印刷用レイアウト (画面上は非表示) */}
-      <div className="hidden print:block print:fixed print:top-0 print:left-0 print:z-50">
+      <div className="hidden print:block print:fixed print:top-0 print:left-0 print:z-50 print:h-0 print:overflow-visible">
         <LabelPreview data={data} size={size} isPrint />
       </div>
     </div>
