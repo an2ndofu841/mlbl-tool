@@ -1,7 +1,17 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Home, Sparkles, Settings } from 'lucide-react';
 
 export default function Header() {
+  const pathname = usePathname();
+  const isHidden = ['/cheki-timer', '/sales'].includes(pathname);
+
+  if (isHidden) {
+    return null;
+  }
+
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 print:hidden">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
