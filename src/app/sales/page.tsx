@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { Plus, Minus, Trash2, ShoppingCart, UserCheck, Settings, FileText, Calculator, X, Check, Repeat, Gift } from "lucide-react";
+import { Plus, Minus, Trash2, ShoppingCart, UserCheck, Settings, FileText, Calculator, X, Check, Repeat, Gift, ArrowLeft } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -369,10 +370,15 @@ export default function SalesPage() {
     <div className="max-w-7xl mx-auto pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <ShoppingCart className="text-pink-500" /> 物販レジ
-          </h2>
-          <p className="text-slate-500 mt-1">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100" aria-label="トップに戻る">
+              <ArrowLeft size={28} />
+            </Link>
+            <h2 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+              <ShoppingCart className="text-pink-500" /> 物販レジ
+            </h2>
+          </div>
+          <p className="text-slate-500 mt-1 pl-12">
             {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
           </p>
         </div>
