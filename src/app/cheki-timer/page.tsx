@@ -14,15 +14,16 @@ interface TimerState {
 }
 
 const DEFAULT_MEMBERS = ["レーン 1", "レーン 2", "レーン 3"];
+// 音程(Hz)を色ごとに定義
 const MEMBER_COLORS = [
-  { name: "Red", value: "#ef4444", bg: "bg-red-50", border: "border-red-500", text: "text-red-600" },
-  { name: "Blue", value: "#3b82f6", bg: "bg-blue-50", border: "border-blue-500", text: "text-blue-600" },
-  { name: "Green", value: "#22c55e", bg: "bg-green-50", border: "border-green-500", text: "text-green-600" },
-  { name: "Yellow", value: "#eab308", bg: "bg-yellow-50", border: "border-yellow-500", text: "text-yellow-600" },
-  { name: "Purple", value: "#a855f7", bg: "bg-purple-50", border: "border-purple-500", text: "text-purple-600" },
-  { name: "Pink", value: "#ec4899", bg: "bg-pink-50", border: "border-pink-500", text: "text-pink-600" },
-  { name: "Orange", value: "#f97316", bg: "bg-orange-50", border: "border-orange-500", text: "text-orange-600" },
-  { name: "Cyan", value: "#06b6d4", bg: "bg-cyan-50", border: "border-cyan-500", text: "text-cyan-600" },
+  { name: "Red", value: "#ef4444", bg: "bg-red-50", border: "border-red-500", text: "text-red-600", tone: 261.63 }, // C4
+  { name: "Blue", value: "#3b82f6", bg: "bg-blue-50", border: "border-blue-500", text: "text-blue-600", tone: 329.63 }, // E4
+  { name: "Green", value: "#22c55e", bg: "bg-green-50", border: "border-green-500", text: "text-green-600", tone: 392.00 }, // G4
+  { name: "Yellow", value: "#eab308", bg: "bg-yellow-50", border: "border-yellow-500", text: "text-yellow-600", tone: 523.25 }, // C5
+  { name: "Purple", value: "#a855f7", bg: "bg-purple-50", border: "border-purple-500", text: "text-purple-600", tone: 440.00 }, // A4
+  { name: "Pink", value: "#ec4899", bg: "bg-pink-50", border: "border-pink-500", text: "text-pink-600", tone: 587.33 }, // D5
+  { name: "Orange", value: "#f97316", bg: "bg-orange-50", border: "border-orange-500", text: "text-orange-600", tone: 349.23 }, // F4
+  { name: "Cyan", value: "#06b6d4", bg: "bg-cyan-50", border: "border-cyan-500", text: "text-cyan-600", tone: 493.88 }, // B4
 ];
 
 export default function ChekiTimerPage() {
@@ -53,7 +54,7 @@ export default function ChekiTimerPage() {
             
             // 0になった瞬間に音を鳴らす
             if (newTime === 0 && timer.timeLeft > 0) {
-              playAlarm();
+              playAlarm(timer.color);
             }
             
             return {
@@ -72,8 +73,8 @@ export default function ChekiTimerPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // 音を鳴らす機能 (Beep音) - ピピッピピッピピッ と長めに鳴らす
-  const playAlarm = useCallback(() => {
+  // 音を鳴らす機能 (Beep音) - 色ごとの音程で鳴らす
+  const playAlarm = useCallback((colorValue: string) => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
@@ -83,6 +84,10 @@ export default function ChekiTimerPage() {
       ctx.resume();
     }
 
+    // 色に対応する周波数を取得 (デフォルトはA4)
+    const colorDef = MEMBER_COLORS.find(c => c.value === colorValue);
+    const baseFreq = colorDef ? colorDef.tone : 440;
+
     const playTone = (startTime: number, duration: number, freq: number) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -90,7 +95,7 @@ export default function ChekiTimerPage() {
         osc.connect(gain);
         gain.connect(ctx.destination);
 
-        osc.type = "sine";
+        osc.type = "triangle"; // 音色を少しリッチに
         osc.frequency.setValueAtTime(freq, startTime);
         
         gain.gain.setValueAtTime(volume, startTime);
@@ -103,10 +108,11 @@ export default function ChekiTimerPage() {
 
     const now = ctx.currentTime;
     
-    // パターン: ピッ・ピッ・ピッ (3回)
-    playTone(now, 0.2, 1760);       // 1回目
-    playTone(now + 0.3, 0.2, 1760); // 2回目
-    playTone(now + 0.6, 0.4, 1760); // 3回目(少し長め)
+    // パターン: ピッ・ピッ・ピーー (3回)
+    // 音程を少し変化させてメロディっぽくして聞き分けやすくする
+    playTone(now, 0.2, baseFreq);             // 1回目
+    playTone(now + 0.3, 0.2, baseFreq);       // 2回目
+    playTone(now + 0.6, 0.6, baseFreq * 1.5); // 3回目(高音・長め)
 
   }, [volume]);
 
