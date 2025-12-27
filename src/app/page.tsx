@@ -34,6 +34,14 @@ export default function Home() {
       icon: <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
       gradient: "from-pink-500 to-rose-500",
       shadow: "shadow-pink-500/20"
+    },
+    {
+      title: "住所ラベル作成",
+      description: "発送用の住所ラベルを作成・印刷します。（国内・海外対応）",
+      href: "/address-label",
+      icon: <FileText className="w-8 h-8 text-white" />,
+      gradient: "from-orange-500 to-amber-500",
+      shadow: "shadow-orange-500/20"
     }
   ];
 
