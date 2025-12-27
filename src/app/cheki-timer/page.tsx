@@ -14,16 +14,17 @@ interface TimerState {
 }
 
 const DEFAULT_MEMBERS = ["レーン 1", "レーン 2", "レーン 3"];
-// 音程(Hz)を色ごとに定義
+
+// 音階定義
 const MEMBER_COLORS = [
-  { name: "Red", value: "#ef4444", bg: "bg-red-50", border: "border-red-500", text: "text-red-600", tone: 261.63 }, // C4
-  { name: "Blue", value: "#3b82f6", bg: "bg-blue-50", border: "border-blue-500", text: "text-blue-600", tone: 329.63 }, // E4
-  { name: "Green", value: "#22c55e", bg: "bg-green-50", border: "border-green-500", text: "text-green-600", tone: 392.00 }, // G4
-  { name: "Yellow", value: "#eab308", bg: "bg-yellow-50", border: "border-yellow-500", text: "text-yellow-600", tone: 523.25 }, // C5
-  { name: "Purple", value: "#a855f7", bg: "bg-purple-50", border: "border-purple-500", text: "text-purple-600", tone: 440.00 }, // A4
-  { name: "Pink", value: "#ec4899", bg: "bg-pink-50", border: "border-pink-500", text: "text-pink-600", tone: 587.33 }, // D5
-  { name: "Orange", value: "#f97316", bg: "bg-orange-50", border: "border-orange-500", text: "text-orange-600", tone: 349.23 }, // F4
-  { name: "Cyan", value: "#06b6d4", bg: "bg-cyan-50", border: "border-cyan-500", text: "text-cyan-600", tone: 493.88 }, // B4
+  { name: "Red", value: "#ef4444", bg: "bg-red-50", border: "border-red-500", text: "text-red-600", tone: 261.63, melody: "heroic" }, // C4
+  { name: "Blue", value: "#3b82f6", bg: "bg-blue-50", border: "border-blue-500", text: "text-blue-600", tone: 329.63, melody: "crystal" }, // E4
+  { name: "Green", value: "#22c55e", bg: "bg-green-50", border: "border-green-500", text: "text-green-600", tone: 392.00, melody: "adventure" }, // G4
+  { name: "Yellow", value: "#eab308", bg: "bg-yellow-50", border: "border-yellow-500", text: "text-yellow-600", tone: 523.25, melody: "coin" }, // C5
+  { name: "Purple", value: "#a855f7", bg: "bg-purple-50", border: "border-purple-500", text: "text-purple-600", tone: 440.00, melody: "mystery" }, // A4
+  { name: "Pink", value: "#ec4899", bg: "bg-pink-50", border: "border-pink-500", text: "text-pink-600", tone: 587.33, melody: "happy" }, // D5
+  { name: "Orange", value: "#f97316", bg: "bg-orange-50", border: "border-orange-500", text: "text-orange-600", tone: 349.23, melody: "powerup" }, // F4
+  { name: "Cyan", value: "#06b6d4", bg: "bg-cyan-50", border: "border-cyan-500", text: "text-cyan-600", tone: 493.88, melody: "future" }, // B4
 ];
 
 export default function ChekiTimerPage() {
@@ -84,35 +85,111 @@ export default function ChekiTimerPage() {
       ctx.resume();
     }
 
-    // 色に対応する周波数を取得 (デフォルトはA4)
-    const colorDef = MEMBER_COLORS.find(c => c.value === colorValue);
-    const baseFreq = colorDef ? colorDef.tone : 440;
+    const colorDef = MEMBER_COLORS.find(c => c.value === colorValue) || MEMBER_COLORS[0];
+    const baseFreq = colorDef.tone;
+    const melodyType = colorDef.melody;
+    const now = ctx.currentTime;
 
-    const playTone = (startTime: number, duration: number, freq: number) => {
+    const playTone = (startTime: number, duration: number, freq: number, type: OscillatorType = "square") => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
-        osc.type = "triangle"; // 音色を少しリッチに
+        osc.type = type;
         osc.frequency.setValueAtTime(freq, startTime);
         
-        gain.gain.setValueAtTime(volume, startTime);
-        gain.gain.setValueAtTime(volume, startTime + duration - 0.05);
+        // アタックとリリースを調整して楽器っぽく
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+        gain.gain.setValueAtTime(volume * 0.8, startTime + duration * 0.8);
         gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
         osc.start(startTime);
         osc.stop(startTime + duration);
     };
 
-    const now = ctx.currentTime;
-    
-    // パターン: ピッ・ピッ・ピーー (3回)
-    // 音程を少し変化させてメロディっぽくして聞き分けやすくする
-    playTone(now, 0.2, baseFreq);             // 1回目
-    playTone(now + 0.3, 0.2, baseFreq);       // 2回目
-    playTone(now + 0.6, 0.6, baseFreq * 1.5); // 3回目(高音・長め)
+    switch (melodyType) {
+        case "heroic": // Red: RPGのレベルアップ/ファンファーレ風
+             // C G C E G C (Major Arpeggio)
+             const hBase = 261.63; // C4
+             playTone(now, 0.1, hBase, "square");
+             playTone(now + 0.1, 0.1, hBase * 1.5, "square"); // G
+             playTone(now + 0.2, 0.1, hBase * 2, "square");   // C5
+             playTone(now + 0.3, 0.1, hBase * 2.5, "square"); // E5
+             playTone(now + 0.4, 0.1, hBase * 3, "square");   // G5
+             playTone(now + 0.5, 0.6, hBase * 4, "square");   // C6
+             break;
+
+        case "crystal": // Blue: クリスタルな輝き音 (Sineで高音)
+            const cBase = 523.25; // C5
+            for(let i=0; i<6; i++) {
+                playTone(now + i*0.08, 0.1, cBase + (i * 100), "sine");
+            }
+            playTone(now + 0.5, 0.6, cBase * 2, "sine");
+            break;
+
+        case "adventure": // Green: 冒険のクリアジングル (3連符っぽいリズム)
+            const aBase = 392.00; // G4
+            playTone(now, 0.12, aBase, "triangle");
+            playTone(now + 0.12, 0.12, aBase * 1.25, "triangle"); // B
+            playTone(now + 0.24, 0.12, aBase * 1.5, "triangle"); // D
+            playTone(now + 0.4, 0.6, aBase * 2, "triangle");     // G5
+            break;
+
+        case "coin": // Yellow: コイン大量獲得風 (高速アルペジオ)
+            const yBase = 523.25; // C5
+            playTone(now, 0.08, yBase * 1.25, "square"); // E
+            playTone(now + 0.08, 0.08, yBase * 1.5, "square"); // G
+            playTone(now + 0.16, 0.08, yBase * 2, "square"); // C6
+            playTone(now + 0.24, 0.08, yBase * 2.5, "square"); // E6
+            playTone(now + 0.32, 0.08, yBase * 3, "square"); // G6
+            playTone(now + 0.40, 0.4, yBase * 4, "square"); // C7
+            break;
+        
+        case "mystery": // Purple: ダンジョンクリア (短調→長調解決)
+            const mBase = 440.00; // A4
+            playTone(now, 0.15, mBase, "sawtooth");
+            playTone(now + 0.15, 0.15, mBase * 1.2, "sawtooth"); // C5 (Minor 3rd)
+            playTone(now + 0.3, 0.15, mBase * 1.5, "sawtooth");  // E5
+            playTone(now + 0.45, 0.6, mBase * 2, "sawtooth");    // A5
+            break;
+
+        case "happy": // Pink: アクションゲームのゴール音
+            const pBase = 587.33; // D5
+            playTone(now, 0.1, pBase, "sine");
+            playTone(now + 0.1, 0.1, pBase * 0.8, "sine"); 
+            playTone(now + 0.2, 0.1, pBase, "sine"); 
+            playTone(now + 0.3, 0.1, pBase * 1.25, "sine"); // F#
+            playTone(now + 0.4, 0.5, pBase * 1.5, "sine");  // A
+            break;
+            
+        case "powerup": // Orange: パワーアップ音 (スライド感)
+            const oBase = 349.23; // F4
+            playTone(now, 0.1, oBase, "sawtooth");
+            playTone(now + 0.1, 0.1, oBase * 1.12, "sawtooth"); // G
+            playTone(now + 0.2, 0.1, oBase * 1.25, "sawtooth"); // A
+            playTone(now + 0.3, 0.1, oBase * 1.33, "sawtooth"); // Bb
+            playTone(now + 0.4, 0.1, oBase * 1.5, "sawtooth");  // C
+            playTone(now + 0.5, 0.5, oBase * 2, "sawtooth");    // F5
+            break;
+            
+        case "future": // Cyan: SFゲームの成功音
+             const fBase = 493.88; // B4
+             playTone(now, 0.05, fBase, "square");
+             playTone(now + 0.05, 0.05, fBase * 1.5, "square");
+             playTone(now + 0.1, 0.05, fBase * 2, "square");
+             playTone(now + 0.15, 0.05, fBase * 2.5, "square");
+             playTone(now + 0.2, 0.05, fBase * 3, "square");
+             playTone(now + 0.3, 0.5, fBase * 4, "square");
+            break;
+
+        default:
+            playTone(now, 0.2, 440);
+            playTone(now + 0.3, 0.2, 880);
+            break;
+    }
 
   }, [volume]);
 
