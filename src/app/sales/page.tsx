@@ -55,6 +55,7 @@ export default function SalesPage() {
   // 入力フォーム状態
   const [mobilizationSelection, setMobilizationSelection] = useState<string | null>(null); 
   const [isDoubleDispatchSelected, setIsDoubleDispatchSelected] = useState(false);
+  const [isNameInputVisible, setIsNameInputVisible] = useState(false); // 名前入力手動表示
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState<Record<string, number>>({});
 
@@ -64,6 +65,13 @@ export default function SalesPage() {
 
   // 売上履歴
   const [salesHistory, setSalesHistory] = useState<SaleRecord[]>([]);
+
+  // 既存の顧客名リスト（サジェスト用）
+  const existingCustomerNames = Array.from(new Set(
+    salesHistory
+      .map(r => r.customerName)
+      .filter(name => name && name.trim() !== "")
+  )).sort();
 
   // 商品リストが変わったらitemsを初期化（まだ存在しないキーを追加）
   useEffect(() => {
@@ -142,9 +150,18 @@ export default function SalesPage() {
       return;
     }
     // 動員または2回し特典がある場合は名前必須
-    if ((mobilizationSelection || isDoubleDispatchSelected) && !customerName.trim()) {
-      alert("動員または特典適用の場合は名前を入力してください。");
-      return;
+    // または、名前入力が表示されている場合も空欄チェック（任意入力にするなら外してもいいが、入力モードにしてるなら入力を促す）
+    if ((mobilizationSelection || isDoubleDispatchSelected || isNameInputVisible) && !customerName.trim()) {
+      // isNameInputVisibleがtrueでも、動員・特典がない場合は任意とする運用もありうるが、
+      // ここでは「名前入力ON」なら入力必須とする（追加購入の意図が明確なため）
+      if (mobilizationSelection || isDoubleDispatchSelected) {
+          alert("動員または特典適用の場合は名前を入力してください。");
+          return;
+      }
+      // 追加購入（動員なし・特典なし）で名前入力だけONにしている場合
+      if (!confirm("名前が入力されていませんが、このまま会計しますか？\n（名前を記録しない場合は「OK」、入力する場合は「キャンセル」）")) {
+          return;
+      }
     }
     setReceivedAmount(""); 
     setShowCheckoutModal(true);
@@ -153,13 +170,15 @@ export default function SalesPage() {
   // 会計確定保存
   const confirmCheckout = () => {
     const isMob = !!mobilizationSelection;
+    // 名前入力モードがON、または動員・特典ありの場合は名前を保存
+    const finalCustomerName = (isMob || isDoubleDispatchSelected || isNameInputVisible) ? customerName : "";
     
     const newRecord: SaleRecord = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
       isMobilization: isMob,
       mobilizationType: isMob ? (mobilizationMode === "single" ? "single" : mobilizationSelection!) : undefined,
-      customerName: (isMob || isDoubleDispatchSelected) ? customerName : "",
+      customerName: finalCustomerName,
       benefit: getCurrentBenefitString(),
       
       isDoubleDispatch: isDoubleDispatchSelected,
@@ -180,6 +199,7 @@ export default function SalesPage() {
     });
     setMobilizationSelection(null);
     setIsDoubleDispatchSelected(false);
+    setIsNameInputVisible(false); // リセット
     setCustomerName("");
     setShowCheckoutModal(false);
   };
@@ -481,17 +501,36 @@ export default function SalesPage() {
                      </div>
                 )}
 
-                {(mobilizationSelection || isDoubleDispatchSelected) && (
+                {/* 名前入力の手動トグル（追加購入用） */}
+                {!mobilizationSelection && !isDoubleDispatchSelected && (
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setIsNameInputVisible(!isNameInputVisible)}
+                            className={`text-sm font-bold flex items-center gap-1 transition-colors ${isNameInputVisible ? 'text-pink-500' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {isNameInputVisible ? <Minus size={14}/> : <Plus size={14}/>} 
+                            {isNameInputVisible ? "名前入力を隠す" : "追加購入・名前を入力する"}
+                        </button>
+                    </div>
+                )}
+
+                {(mobilizationSelection || isDoubleDispatchSelected || isNameInputVisible) && (
                     <div className="animate-in fade-in slide-in-from-top-2">
                          <div className="mb-3">
                             <input 
                                 type="text" 
+                                list="customer-names"
                                 placeholder="お客様のお名前" 
                                 value={customerName}
                                 onChange={(e) => setCustomerName(e.target.value)}
                                 className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-slate-500 text-lg font-bold"
                                 autoFocus
                             />
+                            <datalist id="customer-names">
+                                {existingCustomerNames.map(name => (
+                                    <option key={name} value={name} />
+                                ))}
+                            </datalist>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {getCurrentBenefitList().map((b, i) => (
@@ -599,7 +638,7 @@ export default function SalesPage() {
                                 </div>
                                 <div className="flex justify-between items-baseline mb-1">
                                     <div className="font-bold text-slate-700">
-                                        {record.isMobilization || record.isDoubleDispatch ? (
+                                        {(record.isMobilization || record.isDoubleDispatch || (record.customerName && record.customerName.trim() !== "")) ? (
                                             <span className="flex flex-col">
                                                 <span className="flex items-center gap-1 text-slate-800">
                                                     <UserCheck size={14} /> {record.customerName}
@@ -613,6 +652,11 @@ export default function SalesPage() {
                                                     {record.isDoubleDispatch && (
                                                         <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1 rounded">
                                                             2回し
+                                                        </span>
+                                                    )}
+                                                    {!record.isMobilization && !record.isDoubleDispatch && record.customerName && (
+                                                         <span className="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">
+                                                            追加
                                                         </span>
                                                     )}
                                                 </span>
@@ -665,19 +709,33 @@ export default function SalesPage() {
                             ))}
                         </div>
                         
-                        {(mobilizationSelection || isDoubleDispatchSelected) && (
+                        {(mobilizationSelection || isDoubleDispatchSelected || isNameInputVisible) && (
                             <div className="border-t border-slate-200 pt-3 mt-3">
-                                <div className="text-xs font-bold text-pink-500 mb-2 uppercase tracking-wider flex items-center gap-1">
-                                    <Gift size={12} /> 適用特典
+                                <div className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider flex items-center gap-1">
+                                    <UserCheck size={12} /> お客様情報
                                 </div>
-                                <div className="space-y-2">
-                                    {getCurrentBenefitList().map((b, i) => (
-                                        <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg border border-pink-100 shadow-sm">
-                                            <span className="font-bold text-pink-600">{b.content}</span>
-                                            <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">{b.label}</span>
+                                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mb-2">
+                                    <span className="font-bold text-slate-700">{customerName || "（名前なし）"}</span>
+                                    {isNameInputVisible && !mobilizationSelection && !isDoubleDispatchSelected && (
+                                        <span className="ml-2 text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">追加購入</span>
+                                    )}
+                                </div>
+
+                                {getCurrentBenefitList().length > 0 && (
+                                    <>
+                                        <div className="text-xs font-bold text-pink-500 mb-2 uppercase tracking-wider flex items-center gap-1">
+                                            <Gift size={12} /> 適用特典
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="space-y-2">
+                                            {getCurrentBenefitList().map((b, i) => (
+                                                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg border border-pink-100 shadow-sm">
+                                                    <span className="font-bold text-pink-600">{b.content}</span>
+                                                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">{b.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
                         
@@ -843,23 +901,26 @@ export default function SalesPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {salesHistory.filter(r => r.isMobilization || r.isDoubleDispatch).map(r => (
-                                    <tr key={r.id}>
-                                        <td className="border border-gray-300 p-2 font-mono" style={{ borderColor: '#d1d5db' }}>{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>{r.customerName}</td>
+                                {getAggregatedMobilizationList().map((r, index) => (
+                                    <tr key={index}>
+                                        <td className="border border-gray-300 p-2 font-mono" style={{ borderColor: '#d1d5db' }}>
+                                            {r.timestamps.sort().map(t => new Date(t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})).join(", ")}
+                                        </td>
                                         <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>
-                                            {r.isMobilization ? (r.mobilizationType === "area1" ? multiAreaSettings.area1.label : r.mobilizationType === "area2" ? multiAreaSettings.area2.label : "一般") : "特典のみ"}
+                                            {r.name}
+                                        </td>
+                                        <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>
+                                            {r.isMobilization ? (r.mobilizationType === "area1" ? multiAreaSettings.area1.label : r.mobilizationType === "area2" ? multiAreaSettings.area2.label : "一般") : "追加/特典"}
                                             {r.isDoubleDispatch && <span style={{ marginLeft: '4px', backgroundColor: '#e0e7ff', padding: '2px 4px', borderRadius: '4px', fontSize: '10px' }}>2回し</span>}
                                         </td>
                                         <td className="border border-gray-300 p-2" style={{ borderColor: '#d1d5db' }}>
-                                            {r.benefit}
-                                            {r.isDoubleDispatch && r.benefit && " + "}
-                                            {r.isDoubleDispatch && r.doubleDispatchBenefit}
+                                            {/* 重複を除去して表示 */}
+                                            {Array.from(new Set(r.benefits)).join(" + ")}
                                         </td>
                                         <td className="border border-gray-300 p-2 text-right" style={{ borderColor: '#d1d5db' }}>¥{r.totalAmount.toLocaleString()}</td>
                                     </tr>
                                 ))}
-                                {salesHistory.filter(r => r.isMobilization || r.isDoubleDispatch).length === 0 && (
+                                {getAggregatedMobilizationList().length === 0 && (
                                     <tr><td colSpan={5} className="p-4 text-center text-gray-500" style={{ color: '#6b7280', borderColor: '#d1d5db' }}>動員記録なし</td></tr>
                                 )}
                             </tbody>
