@@ -249,7 +249,7 @@ export default function AddressLabelPage() {
 
       {/* 印刷用レイアウト (画面上は非表示) */}
       <div className="hidden print:block print:w-full print:h-full">
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="p-4">
             <LabelPreview data={data} size={size} isPrint />
         </div>
       </div>
