@@ -272,8 +272,8 @@ function LabelPreview({
   
   const containerClass = `bg-white border-2 border-slate-800 p-8 flex flex-col justify-between ${
     size === "standard" 
-      ? "w-[120mm] h-[65mm]" // 長形3号等の幅に近いイメージ、あるいは宛名シールサイズ
-      : "w-[85mm] h-[50mm]"  // その半分くらい
+      ? "w-[150mm] h-[80mm]" // A4の約1/4サイズ程度 (長形3号に十分貼れる)
+      : "w-[105mm] h-[74mm]" // A4の1/8サイズ (A7) 程度
   } ${isPrint ? "" : "shadow-lg scale-125 origin-top"}`; 
   // プレビュー時は見やすく少し拡大
 
