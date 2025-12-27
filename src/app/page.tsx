@@ -42,6 +42,14 @@ export default function Home() {
       icon: <FileText className="w-8 h-8 text-white" />,
       gradient: "from-orange-500 to-amber-500",
       shadow: "shadow-orange-500/20"
+    },
+    {
+      title: "チェキ会タイマー",
+      description: "複数レーンの時間を一括管理するタイマーです。",
+      href: "/cheki-timer",
+      icon: <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      gradient: "from-rose-500 to-red-500",
+      shadow: "shadow-rose-500/20"
     }
   ];
 
