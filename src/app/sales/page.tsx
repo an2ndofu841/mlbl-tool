@@ -248,20 +248,39 @@ export default function SalesPage() {
     if (!reportRef.current) return;
     
     try {
-            const canvas = await html2canvas(reportRef.current, { 
-                scale: 2,
-                useCORS: true,
-                windowWidth: 1280, // PCサイズでのレンダリングを強制
-            });
-            const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const width = pdf.internal.pageSize.getWidth();
-      const height = (canvas.height * width) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save(`売上日報_${new Date().toISOString().slice(0, 10)}.pdf`);
+        const canvas = await html2canvas(reportRef.current, { 
+            scale: 2,
+            useCORS: true,
+            windowWidth: 1280, // PCサイズでのレンダリングを強制
+        });
+        const imgData = canvas.toDataURL("image/png");
+        
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * pageWidth) / canvas.width;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // 1ページ目
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // 2ページ目以降（残りの高さがある限りループ）
+        while (heightLeft > 0) {
+            position -= pageHeight; // 前のページ分、表示位置を上にずらす
+            pdf.addPage();
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(`売上日報_${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (e) {
-      console.error(e);
-      alert("PDF生成に失敗しました");
+        console.error(e);
+        alert("PDF生成に失敗しました");
     }
   };
 
