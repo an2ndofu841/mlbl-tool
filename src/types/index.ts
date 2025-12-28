@@ -44,6 +44,12 @@ export interface EventPreset {
   created_at: string;
 }
 
+export interface MasterItem {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
 export interface SetlistItem {
   id: string; // UUID or temporary ID
   trackOrder: number;

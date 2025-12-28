@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Song, SetlistItem, EventPreset } from '@/types';
-import { Trash2, Plus, Save, Download, Music, AlertCircle, Clock, FileAudio, BookOpen, BookmarkPlus } from 'lucide-react';
+import { Song, SetlistItem, EventPreset, MasterItem } from '@/types';
+import { Trash2, Plus, Save, Download, Music, AlertCircle, Clock, FileAudio, BookOpen, BookmarkPlus, Settings } from 'lucide-react';
 import JSZip from 'jszip';
+import Link from 'next/link';
 import { saveAs } from 'file-saver';
 
 // --- Utility Functions ---
@@ -203,24 +204,27 @@ const SongManager = () => {
 export default function SetlistPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [presets, setPresets] = useState<EventPreset[]>([]);
+  const [masterEvents, setMasterEvents] = useState<MasterItem[]>([]);
+  const [masterVenues, setMasterVenues] = useState<MasterItem[]>([]);
   const [activeTab, setActiveTab] = useState<'builder' | 'songs'>('builder');
 
   // Load songs for selection
   useEffect(() => {
     const loadData = async () => {
         // Songs
-        const { data: songsData } = await supabase
-            .from('songs')
-            .select('*')
-            .order('title');
+        const { data: songsData } = await supabase.from('songs').select('*').order('title');
         if (songsData) setSongs(songsData);
 
         // Presets
-        const { data: presetsData } = await supabase
-            .from('event_presets')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const { data: presetsData } = await supabase.from('event_presets').select('*').order('created_at', { ascending: false });
         if (presetsData) setPresets(presetsData);
+
+        // Master Data
+        const { data: eventsData } = await supabase.from('events').select('*').order('name');
+        if (eventsData) setMasterEvents(eventsData);
+
+        const { data: venuesData } = await supabase.from('venues').select('*').order('name');
+        if (venuesData) setMasterVenues(venuesData);
     };
     loadData();
   }, [activeTab]); // Refresh when tab changes
@@ -488,53 +492,90 @@ export default function SetlistPage() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print:hidden">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 className="text-lg font-bold text-slate-700">イベント情報</h3>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <Link href="/setlist/events" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <Settings size={12} /> イベント名管理
+                        </Link>
+                        <Link href="/setlist/venues" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <Settings size={12} /> 会場名管理
+                        </Link>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-l pl-4 ml-2">
                         <BookOpen size={16} className="text-slate-400" />
                         <select 
                             onChange={(e) => applyPreset(e.target.value)}
                             className="text-xs p-1 border rounded bg-slate-50 max-w-[150px]"
                             defaultValue=""
                         >
-                            <option value="" disabled>履歴から呼出</option>
+                            <option value="" disabled>セット履歴から呼出</option>
                             {presets.map(p => (
                                 <option key={p.id} value={p.id}>
                                     {p.event_name} @{p.venue}
                                 </option>
                             ))}
                         </select>
+                        <button 
+                            onClick={savePreset}
+                            className="text-xs flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors ml-1"
+                            title="現在のイベント名・会場・アーティスト名を履歴に保存"
+                        >
+                            <BookmarkPlus size={14} />
+                            保存
+                        </button>
                     </div>
-                    <button 
-                        onClick={savePreset}
-                        className="text-xs flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors"
-                        title="現在のイベント名・会場・アーティスト名を履歴に保存"
-                    >
-                        <BookmarkPlus size={14} />
-                        保存
-                    </button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-medium text-slate-500 mb-1">イベント名</label>
-                <input 
-                  type="text" 
-                  value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm"
-                  placeholder="イベント名を入力"
-                />
+                <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={eventName}
+                      onChange={(e) => setEventName(e.target.value)}
+                      className="flex-1 p-2 border rounded-lg text-sm"
+                      placeholder="イベント名を入力"
+                    />
+                    <select 
+                        className="w-32 p-2 border rounded-lg text-sm bg-slate-50"
+                        onChange={(e) => {
+                            if(e.target.value) setEventName(e.target.value);
+                        }}
+                        value=""
+                    >
+                        <option value="" disabled>選択</option>
+                        {masterEvents.map(e => (
+                            <option key={e.id} value={e.name}>{e.name}</option>
+                        ))}
+                    </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">会場</label>
-                <input 
-                  type="text" 
-                  value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm"
-                  placeholder="会場名"
-                />
+                <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={venue}
+                      onChange={(e) => setVenue(e.target.value)}
+                      className="flex-1 p-2 border rounded-lg text-sm"
+                      placeholder="会場名"
+                    />
+                    <select 
+                        className="w-32 p-2 border rounded-lg text-sm bg-slate-50"
+                        onChange={(e) => {
+                            if(e.target.value) setVenue(e.target.value);
+                        }}
+                        value=""
+                    >
+                        <option value="" disabled>選択</option>
+                        {masterVenues.map(v => (
+                            <option key={v.id} value={v.name}>{v.name}</option>
+                        ))}
+                    </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">出演日</label>

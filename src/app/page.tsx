@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Users, Briefcase, ArrowRight, Music } from "lucide-react";
+import { FileText, Users, Briefcase, ArrowRight, Music, Settings } from "lucide-react";
 
 export default function Home() {
   const tools = [
@@ -58,6 +58,14 @@ export default function Home() {
       icon: <Music className="w-8 h-8 text-white" />,
       gradient: "from-violet-500 to-purple-500",
       shadow: "shadow-violet-500/20"
+    },
+    {
+      title: "イベント・会場管理",
+      description: "セットリストで使用するイベント名や会場名を管理します。",
+      href: "/setlist/manage",
+      icon: <Settings className="w-8 h-8 text-white" />,
+      gradient: "from-slate-500 to-gray-500",
+      shadow: "shadow-slate-500/20"
     }
   ];
 
