@@ -235,7 +235,7 @@ export default function SetlistPage() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between print:hidden">
         <h2 className="text-2xl font-bold text-slate-800">セットリスト作成</h2>
         <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
           <button
@@ -266,67 +266,67 @@ export default function SetlistPage() {
       ) : (
         <div className="space-y-8 animate-fade-in">
           {/* Header Info */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print:shadow-none print:border-none print:p-0">
-            <h3 className="text-lg font-bold mb-4 text-slate-700 border-b pb-2 print:hidden">イベント情報</h3>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print:hidden">
+            <h3 className="text-lg font-bold mb-4 text-slate-700 border-b pb-2">イベント情報</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">イベント名</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">イベント名</label>
                 <input 
                   type="text" 
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                   placeholder="イベント名を入力"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">会場</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">会場</label>
                 <input 
                   type="text" 
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                   placeholder="会場名"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">出演日</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">出演日</label>
                 <input 
                   type="date" 
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                 />
               </div>
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">アーティスト名</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">アーティスト名</label>
                 <input 
                   type="text" 
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                   placeholder="アーティスト名"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">メンバー数</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">メンバー数</label>
                 <input 
                   type="number" 
                   value={memberCount}
                   onChange={(e) => setMemberCount(Number(e.target.value))}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1 print:text-black">マイク本数</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">マイク本数</label>
                 <input 
                   type="number" 
                   value={micCount}
                   onChange={(e) => setMicCount(Number(e.target.value))}
-                  className="w-full p-2 border rounded-lg text-sm print:border-none print:p-0"
+                  className="w-full p-2 border rounded-lg text-sm"
                 />
               </div>
-              <div className="print:hidden">
+              <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">持ち時間 (分)</label>
                 <input 
                   type="number" 
@@ -338,7 +338,7 @@ export default function SetlistPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none print:overflow-visible">
             {/* 編集用レイアウト (印刷時は非表示) */}
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10 print:hidden">
               <h3 className="text-lg font-bold text-slate-700">セットリスト</h3>
@@ -453,7 +453,7 @@ export default function SetlistPage() {
             </div>
 
             {/* 印刷用レイアウト (A4) */}
-            <div className="hidden print:block text-black bg-white p-4">
+            <div className="hidden print:block text-black bg-white p-8 print:absolute print:top-0 print:left-0 print:w-full print:h-full print:z-50">
               {/* Header */}
               <div className="relative mb-6">
                  <h1 className="text-4xl font-black text-center text-slate-700 tracking-widest uppercase mb-2">SET LIST</h1>
@@ -568,7 +568,7 @@ export default function SetlistPage() {
           </div>
 
           {/* Footer Actions */}
-          <div className="flex flex-col md:flex-row items-center gap-4 justify-end pt-4">
+          <div className="flex flex-col md:flex-row items-center gap-4 justify-end pt-4 print:hidden">
             <button
                 onClick={handleDownloadCDData}
                 disabled={items.length === 0}
