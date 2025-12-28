@@ -224,6 +224,67 @@ export default function SetlistPage() {
 
   const [items, setItems] = useState<SetlistItem[]>([]);
   const [otherNotes, setOtherNotes] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Upload & Add Song directly from Setlist Builder
+  const handleQuickUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+        const file = files[0]; // Single file for quick upload
+        
+        // 1. Get duration
+        const duration = await new Promise<number>((resolve) => {
+          const audio = new Audio(URL.createObjectURL(file));
+          audio.onloadedmetadata = () => {
+            resolve(audio.duration);
+            URL.revokeObjectURL(audio.src);
+          };
+          audio.onerror = () => resolve(0);
+        });
+
+        // 2. Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `uploads/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('songs')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 3. Insert metadata to DB
+        const { data: newSong, error: insertError } = await supabase
+          .from('songs')
+          .insert({
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            duration,
+            file_path: filePath,
+            file_name: file.name,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        // 4. Update Local State & Setlist Item
+        if (newSong) {
+            setSongs(prev => [newSong, ...prev]); // Add to local list
+            updateItem(itemId, 'songId', newSong.id); // Auto select
+        }
+
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("アップロードに失敗しました。Supabaseの設定（Storageバケット作成など）を確認してください。");
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
 
   // Add Item
   const addItem = (songId?: number) => {
@@ -482,6 +543,28 @@ export default function SetlistPage() {
                               <option key={s.id} value={s.id}>{s.title} ({formatTime(s.duration)})</option>
                             ))}
                           </select>
+                          
+                          {/* Quick Upload Button */}
+                          {!item.songId && (
+                              <label className="flex items-center justify-center gap-1 w-full p-1 border border-dashed border-indigo-300 rounded text-xs text-indigo-600 hover:bg-indigo-50 cursor-pointer transition-colors print:hidden">
+                                <input 
+                                    type="file" 
+                                    accept="audio/*" 
+                                    onChange={(e) => handleQuickUpload(e, item.id)} 
+                                    className="hidden" 
+                                    disabled={isUploading}
+                                />
+                                {isUploading ? (
+                                    <span>UP中...</span>
+                                ) : (
+                                    <>
+                                        <FileAudio size={12} />
+                                        <span>音源を登録して選択</span>
+                                    </>
+                                )}
+                              </label>
+                          )}
+
                           <input 
                             type="text" 
                             value={item.title} 
