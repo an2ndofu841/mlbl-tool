@@ -145,7 +145,7 @@ export default function SetlistPage() {
   const [micCount, setMicCount] = useState<number>(0);
   const [durationLimit, setDurationLimit] = useState<number>(30); // minutes
 
-  const [items, setItems] = useState<SetlistItem[]>([]);
+  const [otherNotes, setOtherNotes] = useState('');
 
   // Add Item
   const addItem = (songId?: number) => {
@@ -337,8 +337,8 @@ export default function SetlistPage() {
             </div>
           </div>
 
-          {/* Setlist Items */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none">
+            {/* 編集用レイアウト (印刷時は非表示) */}
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10 print:hidden">
               <h3 className="text-lg font-bold text-slate-700">セットリスト</h3>
               <div className={`flex items-center gap-2 text-sm font-bold px-3 py-1 rounded-full ${isOverTime ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
@@ -348,9 +348,9 @@ export default function SetlistPage() {
               </div>
             </div>
             
-            <div className="overflow-x-auto print:overflow-visible">
-              <table className="w-full text-sm min-w-[800px] print:min-w-0">
-                <thead className="bg-slate-50 text-slate-500 font-medium print:bg-white print:text-black print:border-b-2 print:border-black">
+            <div className="overflow-x-auto print:hidden">
+              <table className="w-full text-sm min-w-[800px]">
+                <thead className="bg-slate-50 text-slate-500 font-medium">
                   <tr>
                     <th className="px-4 py-2 w-12 text-center">#</th>
                     <th className="px-4 py-2 w-64">タイトル (曲)</th>
@@ -359,19 +359,19 @@ export default function SetlistPage() {
                     <th className="px-4 py-2 w-48">音響への要望</th>
                     <th className="px-4 py-2 w-48">照明への要望</th>
                     <th className="px-4 py-2 w-48">その他自由記載</th>
-                    <th className="px-4 py-2 w-12 print:hidden"></th>
+                    <th className="px-4 py-2 w-12"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 print:divide-slate-300">
+                <tbody className="divide-y divide-slate-100">
                   {items.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-slate-50 print:hover:bg-white">
-                      <td className="px-4 py-2 text-center text-slate-400 print:text-black">{idx + 1}</td>
+                    <tr key={item.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-2 text-center text-slate-400">{idx + 1}</td>
                       <td className="px-4 py-2">
                         <div className="space-y-1">
                           <select 
                             value={item.songId || ''} 
                             onChange={(e) => updateItem(item.id, 'songId', e.target.value)}
-                            className="w-full p-1 border rounded text-xs print:hidden"
+                            className="w-full p-1 border rounded text-xs"
                           >
                             <option value="">(楽曲選択)</option>
                             {songs?.map(s => (
@@ -382,19 +382,19 @@ export default function SetlistPage() {
                             type="text" 
                             value={item.title} 
                             onChange={(e) => updateItem(item.id, 'title', e.target.value)}
-                            className="w-full p-1 border rounded print:border-none print:p-0 print:font-bold"
+                            className="w-full p-1 border rounded font-bold"
                             placeholder="曲名"
                           />
                         </div>
                       </td>
-                      <td className="px-4 py-2 font-mono text-center print:text-black">
+                      <td className="px-4 py-2 font-mono text-center">
                         {formatTime(item.duration)}
                       </td>
                       <td className="px-4 py-2">
                         <select 
                           value={item.triggerType} 
                           onChange={(e) => updateItem(item.id, 'triggerType', e.target.value)}
-                          className="w-full p-1 border rounded print:appearance-none print:border-none print:p-0"
+                          className="w-full p-1 border rounded"
                         >
                           <option value="音先">音先</option>
                           <option value="板付">板付</option>
@@ -407,7 +407,7 @@ export default function SetlistPage() {
                         <textarea 
                           value={item.soundRequest} 
                           onChange={(e) => updateItem(item.id, 'soundRequest', e.target.value)}
-                          className="w-full p-1 border rounded h-16 resize-none print:border-none print:p-0 print:h-auto"
+                          className="w-full p-1 border rounded h-16 resize-none"
                           placeholder="Reverb多め、など"
                         />
                       </td>
@@ -415,7 +415,7 @@ export default function SetlistPage() {
                         <textarea 
                           value={item.lightRequest} 
                           onChange={(e) => updateItem(item.id, 'lightRequest', e.target.value)}
-                          className="w-full p-1 border rounded h-16 resize-none print:border-none print:p-0 print:h-auto"
+                          className="w-full p-1 border rounded h-16 resize-none"
                           placeholder="赤系、激しく、など"
                         />
                       </td>
@@ -423,10 +423,10 @@ export default function SetlistPage() {
                         <textarea 
                           value={item.notes} 
                           onChange={(e) => updateItem(item.id, 'notes', e.target.value)}
-                          className="w-full p-1 border rounded h-16 resize-none print:border-none print:p-0 print:h-auto"
+                          className="w-full p-1 border rounded h-16 resize-none"
                         />
                       </td>
-                      <td className="px-4 py-2 text-center print:hidden">
+                      <td className="px-4 py-2 text-center">
                         <button 
                           onClick={() => removeItem(item.id)}
                           className="text-slate-400 hover:text-red-500 transition-colors"
@@ -436,7 +436,7 @@ export default function SetlistPage() {
                       </td>
                     </tr>
                   ))}
-                  <tr className="print:hidden">
+                  <tr>
                     <td colSpan={8} className="p-2">
                       <button 
                         onClick={() => addItem()}
@@ -450,6 +450,120 @@ export default function SetlistPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* 印刷用レイアウト (A4) */}
+            <div className="hidden print:block text-black bg-white p-4">
+              {/* Header */}
+              <div className="relative mb-6">
+                 <h1 className="text-4xl font-black text-center text-slate-700 tracking-widest uppercase mb-2">SET LIST</h1>
+                 <div className="text-right text-xs">
+                    出力日: {new Date().toLocaleString('ja-JP')}
+                 </div>
+              </div>
+
+              {/* Info Table */}
+              <div className="border-2 border-black mb-6">
+                <div className="grid grid-cols-12 border-b border-black">
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">イベント名</div>
+                  <div className="col-span-10 text-xl font-bold p-1 px-2">{eventName}</div>
+                </div>
+                <div className="grid grid-cols-12 border-b border-black">
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">会場</div>
+                  <div className="col-span-6 p-1 px-2 text-lg border-r border-black">{venue}</div>
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">出演日</div>
+                  <div className="col-span-2 p-1 px-2 text-lg flex items-center justify-center">{date}</div>
+                </div>
+                <div className="grid grid-cols-12 border-b border-black">
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">アーティスト名</div>
+                  <div className="col-span-10 text-2xl font-black p-1 px-2">{artistName}</div>
+                </div>
+                <div className="grid grid-cols-12">
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">メンバー数</div>
+                  <div className="col-span-2 p-1 px-2 text-lg border-r border-black">{memberCount > 0 ? `${memberCount}人` : ''}</div>
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">マイク本数</div>
+                  <div className="col-span-2 p-1 px-2 text-lg border-r border-black">{micCount > 0 ? `${micCount}本` : ''}</div>
+                  <div className="col-span-2 bg-black text-white font-bold flex items-center justify-center p-1 text-sm border-r border-black">演奏時間</div>
+                  <div className="col-span-2 p-1 px-2 text-lg">{durationLimit}分</div>
+                </div>
+              </div>
+
+              {/* Setlist Table */}
+              <table className="w-full border-2 border-black mb-4">
+                <thead>
+                  <tr className="bg-black text-white">
+                    <th className="border border-white p-1 w-8 text-center text-sm">#</th>
+                    <th className="border border-white p-1 w-64 text-center text-sm">タイトル</th>
+                    <th className="border border-white p-1 w-12 text-center text-sm">track</th>
+                    <th className="border border-white p-1 w-20 text-center text-sm">キッカケ</th>
+                    <th className="border border-white p-1 text-center text-sm">音響への要望</th>
+                    <th className="border border-white p-1 text-center text-sm">照明への要望</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={item.id} className="border-b border-black">
+                      {/* # */}
+                      <td className="border-r border-black bg-black text-white font-bold text-center text-lg w-8">
+                        {idx + 1}
+                      </td>
+                      
+                      {/* タイトル & TIME */}
+                      <td className="border-r border-black p-0 align-top w-64">
+                         <div className="h-full flex flex-col">
+                            <div className="flex-1 p-2 flex items-center justify-center text-center font-bold text-lg leading-tight min-h-[40px]">
+                                {item.title}
+                            </div>
+                            <div className="flex border-t border-black text-xs h-6">
+                                <div className="bg-black text-white font-bold px-2 flex items-center">TIME</div>
+                                <div className="flex-1 flex items-center justify-center font-mono font-bold bg-white">
+                                    {formatTime(item.duration)}
+                                </div>
+                            </div>
+                         </div>
+                      </td>
+
+                      {/* track */}
+                      <td className="border-r border-black text-center p-1 text-lg w-12">
+                        {idx + 1}
+                      </td>
+
+                      {/* キッカケ */}
+                      <td className="border-r border-black text-center p-1 font-medium w-20 text-sm">
+                        {item.triggerType}
+                      </td>
+
+                      {/* 音響への要望 */}
+                      <td className="border-r border-black p-2 align-top text-sm whitespace-pre-wrap">
+                        {item.soundRequest}
+                      </td>
+
+                      {/* 照明への要望 */}
+                      <td className="p-2 align-top text-sm whitespace-pre-wrap">
+                        {item.lightRequest}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* その他欄 */}
+              <div className="mt-2">
+                 <div className="text-sm font-bold mb-1">その他</div>
+                 <div className="border-2 border-black p-2 min-h-[100px] text-sm whitespace-pre-wrap">
+                    {otherNotes}
+                 </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="print:hidden">
+            <h4 className="font-bold text-slate-700 mb-2">その他（印刷用）</h4>
+            <textarea 
+                value={otherNotes}
+                onChange={(e) => setOtherNotes(e.target.value)}
+                className="w-full p-2 border rounded-lg h-24"
+                placeholder="印刷用セットリストの下部に表示されるコメント欄です。"
+            />
           </div>
 
           {/* Footer Actions */}
