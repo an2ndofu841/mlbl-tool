@@ -531,50 +531,40 @@ export default function SetlistPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-medium text-slate-500 mb-1">イベント名</label>
-                <div className="flex gap-2">
+                <div className="relative">
                     <input 
                       type="text" 
+                      list="event-suggestions"
                       value={eventName}
                       onChange={(e) => setEventName(e.target.value)}
-                      className="flex-1 p-2 border rounded-lg text-sm"
-                      placeholder="イベント名を入力"
+                      className="w-full p-2 border rounded-lg text-sm"
+                      placeholder="イベント名を入力（候補から選択可）"
+                      autoComplete="off"
                     />
-                    <select 
-                        className="w-32 p-2 border rounded-lg text-sm bg-slate-50"
-                        onChange={(e) => {
-                            if(e.target.value) setEventName(e.target.value);
-                        }}
-                        value=""
-                    >
-                        <option value="" disabled>選択</option>
+                    <datalist id="event-suggestions">
                         {masterEvents.map(e => (
-                            <option key={e.id} value={e.name}>{e.name}</option>
+                            <option key={e.id} value={e.name} />
                         ))}
-                    </select>
+                    </datalist>
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">会場</label>
-                <div className="flex gap-2">
+                <div className="relative">
                     <input 
                       type="text" 
+                      list="venue-suggestions"
                       value={venue}
                       onChange={(e) => setVenue(e.target.value)}
-                      className="flex-1 p-2 border rounded-lg text-sm"
+                      className="w-full p-2 border rounded-lg text-sm"
                       placeholder="会場名"
+                      autoComplete="off"
                     />
-                    <select 
-                        className="w-32 p-2 border rounded-lg text-sm bg-slate-50"
-                        onChange={(e) => {
-                            if(e.target.value) setVenue(e.target.value);
-                        }}
-                        value=""
-                    >
-                        <option value="" disabled>選択</option>
+                    <datalist id="venue-suggestions">
                         {masterVenues.map(v => (
-                            <option key={v.id} value={v.name}>{v.name}</option>
+                            <option key={v.id} value={v.name} />
                         ))}
-                    </select>
+                    </datalist>
                 </div>
               </div>
               <div>
