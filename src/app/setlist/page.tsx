@@ -145,6 +145,7 @@ export default function SetlistPage() {
   const [micCount, setMicCount] = useState<number>(0);
   const [durationLimit, setDurationLimit] = useState<number>(30); // minutes
 
+  const [items, setItems] = useState<SetlistItem[]>([]);
   const [otherNotes, setOtherNotes] = useState('');
 
   // Add Item
