@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Song, SetlistItem } from '@/types';
-import { Trash2, Plus, Save, Download, Music, AlertCircle, Clock, FileAudio } from 'lucide-react';
+import { Song, SetlistItem, EventPreset } from '@/types';
+import { Trash2, Plus, Save, Download, Music, AlertCircle, Clock, FileAudio, BookOpen, BookmarkPlus } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -202,18 +202,27 @@ const SongManager = () => {
 
 export default function SetlistPage() {
   const [songs, setSongs] = useState<Song[]>([]);
+  const [presets, setPresets] = useState<EventPreset[]>([]);
   const [activeTab, setActiveTab] = useState<'builder' | 'songs'>('builder');
 
   // Load songs for selection
   useEffect(() => {
-    const loadSongs = async () => {
-        const { data } = await supabase
+    const loadData = async () => {
+        // Songs
+        const { data: songsData } = await supabase
             .from('songs')
             .select('*')
             .order('title');
-        if (data) setSongs(data);
+        if (songsData) setSongs(songsData);
+
+        // Presets
+        const { data: presetsData } = await supabase
+            .from('event_presets')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (presetsData) setPresets(presetsData);
     };
-    loadSongs();
+    loadData();
   }, [activeTab]); // Refresh when tab changes
 
   // Setlist State
@@ -228,6 +237,46 @@ export default function SetlistPage() {
   const [items, setItems] = useState<SetlistItem[]>([]);
   const [otherNotes, setOtherNotes] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  // Preset Functions
+  const applyPreset = (presetId: string) => {
+    const preset = presets.find(p => p.id.toString() === presetId);
+    if (preset) {
+        setEventName(preset.event_name || '');
+        setVenue(preset.venue || '');
+        setArtistName(preset.artist_name || 'CrazyFantasy');
+    }
+  };
+
+  const savePreset = async () => {
+    if (!eventName || !venue) {
+        alert('イベント名と会場名は必須です');
+        return;
+    }
+    const { data, error } = await supabase
+        .from('event_presets')
+        .insert({
+            event_name: eventName,
+            venue: venue,
+            artist_name: artistName
+        })
+        .select()
+        .single();
+    
+    if (error) {
+        console.error(error);
+        alert('保存に失敗しました');
+    } else {
+        setPresets([data, ...presets]);
+        alert('プリセットを保存しました');
+    }
+  };
+
+  const deletePreset = async (id: number) => {
+    if(!confirm('このプリセットを削除しますか？')) return;
+    await supabase.from('event_presets').delete().eq('id', id);
+    setPresets(presets.filter(p => p.id !== id));
+  };
 
   // Upload & Add Song directly from Setlist Builder
   const handleQuickUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
@@ -437,7 +486,35 @@ export default function SetlistPage() {
         <div className="space-y-8 animate-fade-in">
           {/* Header Info */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 print:hidden">
-            <h3 className="text-lg font-bold mb-4 text-slate-700 border-b pb-2">イベント情報</h3>
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 className="text-lg font-bold text-slate-700">イベント情報</h3>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <BookOpen size={16} className="text-slate-400" />
+                        <select 
+                            onChange={(e) => applyPreset(e.target.value)}
+                            className="text-xs p-1 border rounded bg-slate-50 max-w-[150px]"
+                            defaultValue=""
+                        >
+                            <option value="" disabled>履歴から呼出</option>
+                            {presets.map(p => (
+                                <option key={p.id} value={p.id}>
+                                    {p.event_name} @{p.venue}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <button 
+                        onClick={savePreset}
+                        className="text-xs flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors"
+                        title="現在のイベント名・会場・アーティスト名を履歴に保存"
+                    >
+                        <BookmarkPlus size={14} />
+                        保存
+                    </button>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs font-medium text-slate-500 mb-1">イベント名</label>

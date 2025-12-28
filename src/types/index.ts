@@ -36,6 +36,14 @@ export interface Song {
   createdAt: Date;
 }
 
+export interface EventPreset {
+  id: number;
+  event_name: string;
+  venue: string;
+  artist_name: string;
+  created_at: string;
+}
+
 export interface SetlistItem {
   id: string; // UUID or temporary ID
   trackOrder: number;
