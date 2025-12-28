@@ -612,6 +612,17 @@ export default function SetlistPage() {
                   onChange={(e) => setDurationLimit(Number(e.target.value))}
                   className="w-full p-2 border rounded-lg text-sm"
                 />
+                <div className="flex gap-1 mt-1">
+                    {[15, 20, 25, 30].map(min => (
+                        <button
+                            key={min}
+                            onClick={() => setDurationLimit(min)}
+                            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors"
+                        >
+                            {min}
+                        </button>
+                    ))}
+                </div>
               </div>
             </div>
           </div>
