@@ -21,6 +21,9 @@ const SongManager = () => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDuration, setEditDuration] = useState('');
 
   const fetchSongs = async () => {
     try {
@@ -99,6 +102,33 @@ const SongManager = () => {
     }
   };
 
+  const handleEditStart = (song: Song) => {
+    setEditingId(song.id!);
+    setEditTitle(song.title);
+    setEditDuration(song.duration.toString());
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    try {
+        const { error } = await supabase
+            .from('songs')
+            .update({
+                title: editTitle,
+                duration: parseFloat(editDuration)
+            })
+            .eq('id', editingId);
+
+        if (error) throw error;
+        
+        setEditingId(null);
+        fetchSongs();
+    } catch (error) {
+        console.error('Update failed:', error);
+        alert('更新に失敗しました');
+    }
+  };
+
   const handleDelete = async (id: number, filePath: string) => {
     if (!confirm('この曲を削除しますか？')) return;
 
@@ -167,17 +197,56 @@ const SongManager = () => {
           <tbody className="divide-y divide-slate-100">
             {songs.map((song) => (
               <tr key={song.id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 font-medium text-slate-700">{song.title}</td>
-                <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{song.fileName || (song as any).file_name}</td>
-                <td className="px-4 py-3 text-slate-500 font-mono">{formatTime(song.duration)}</td>
-                <td className="px-4 py-3 text-center">
-                  <button 
-                    onClick={() => song.id && handleDelete(song.id, (song as any).file_path)}
-                    className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </td>
+                {editingId === song.id ? (
+                    // Editing Mode
+                    <>
+                        <td className="px-4 py-3">
+                            <input 
+                                type="text" 
+                                value={editTitle} 
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="w-full p-1 border rounded"
+                            />
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{song.fileName || (song as any).file_name}</td>
+                        <td className="px-4 py-3 font-mono">
+                            <input 
+                                type="number" 
+                                value={editDuration} 
+                                onChange={(e) => setEditDuration(e.target.value)}
+                                className="w-20 p-1 border rounded"
+                                step="0.1"
+                            />
+                        </td>
+                        <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                            <button onClick={handleUpdate} className="text-green-600 hover:text-green-800">
+                                <Save size={16} />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="text-slate-400 hover:text-slate-600">
+                                ×
+                            </button>
+                        </td>
+                    </>
+                ) : (
+                    // View Mode
+                    <>
+                        <td className="px-4 py-3 font-medium text-slate-700 cursor-pointer hover:underline" onClick={() => handleEditStart(song)}>
+                            {song.title}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{song.fileName || (song as any).file_name}</td>
+                        <td className="px-4 py-3 text-slate-500 font-mono cursor-pointer hover:underline" onClick={() => handleEditStart(song)}>
+                            {formatTime(song.duration)}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                        <button 
+                            onClick={() => song.id && handleDelete(song.id, (song as any).file_path)}
+                            className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                        </td>
+                    </>
+                )}
               </tr>
             ))}
             {!isLoading && songs.length === 0 && (
