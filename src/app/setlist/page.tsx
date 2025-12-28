@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabaseClient';
 import { Song, SetlistItem } from '@/types';
 import { Trash2, Plus, Save, Download, Music, AlertCircle, Clock, FileAudio } from 'lucide-react';
 import JSZip from 'jszip';
@@ -18,8 +17,29 @@ const formatTime = (seconds: number) => {
 // --- Components ---
 
 const SongManager = () => {
-  const songs = useLiveQuery(() => db.songs.toArray());
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+
+  const fetchSongs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('songs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSongs(data || []);
+    } catch (error) {
+      console.error('Error fetching songs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSongs();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -30,37 +50,75 @@ const SongManager = () => {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        // Get duration
+        // 1. Get duration
         const duration = await new Promise<number>((resolve) => {
           const audio = new Audio(URL.createObjectURL(file));
           audio.onloadedmetadata = () => {
             resolve(audio.duration);
             URL.revokeObjectURL(audio.src);
           };
-          audio.onerror = () => resolve(0); // Fallback
+          audio.onerror = () => resolve(0);
         });
 
-        await db.songs.add({
-          title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-          duration,
-          fileData: file,
-          fileName: file.name,
-          createdAt: new Date(),
-        });
+        // 2. Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `uploads/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('songs')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 3. Insert metadata to DB
+        const { error: insertError } = await supabase
+          .from('songs')
+          .insert({
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            duration,
+            file_path: filePath,
+            file_name: file.name,
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError) throw insertError;
       }
+      // Refresh list
+      fetchSongs();
     } catch (error) {
       console.error("Upload failed", error);
-      alert("アップロードに失敗しました");
+      alert("アップロードに失敗しました。Supabaseの設定を確認してください。");
     } finally {
       setIsUploading(false);
-      // Reset input
       e.target.value = '';
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('この曲を削除しますか？')) {
-      await db.songs.delete(id);
+  const handleDelete = async (id: number, filePath: string) => {
+    if (!confirm('この曲を削除しますか？')) return;
+
+    try {
+      // 1. Delete from Storage
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('songs')
+          .remove([filePath]);
+        if (storageError) console.error('Storage delete error:', storageError);
+      }
+
+      // 2. Delete from DB
+      const { error: dbError } = await supabase
+        .from('songs')
+        .delete()
+        .eq('id', id);
+      
+      if (dbError) throw dbError;
+
+      fetchSongs();
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('削除に失敗しました');
     }
   };
 
@@ -103,14 +161,14 @@ const SongManager = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {songs?.map((song) => (
+            {songs.map((song) => (
               <tr key={song.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium text-slate-700">{song.title}</td>
-                <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{song.fileName}</td>
+                <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{song.fileName || (song as any).file_name}</td>
                 <td className="px-4 py-3 text-slate-500 font-mono">{formatTime(song.duration)}</td>
                 <td className="px-4 py-3 text-center">
                   <button 
-                    onClick={() => song.id && handleDelete(song.id)}
+                    onClick={() => song.id && handleDelete(song.id, (song as any).file_path)}
                     className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                   >
                     <Trash2 size={16} />
@@ -118,10 +176,17 @@ const SongManager = () => {
                 </td>
               </tr>
             ))}
-            {songs?.length === 0 && (
+            {!isLoading && songs.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
                   楽曲が登録されていません
+                </td>
+              </tr>
+            )}
+            {isLoading && (
+               <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                  読み込み中...
                 </td>
               </tr>
             )}
@@ -133,8 +198,20 @@ const SongManager = () => {
 };
 
 export default function SetlistPage() {
-  const songs = useLiveQuery(() => db.songs.toArray());
+  const [songs, setSongs] = useState<Song[]>([]);
   const [activeTab, setActiveTab] = useState<'builder' | 'songs'>('builder');
+
+  // Load songs for selection
+  useEffect(() => {
+    const loadSongs = async () => {
+        const { data } = await supabase
+            .from('songs')
+            .select('*')
+            .order('title');
+        if (data) setSongs(data);
+    };
+    loadSongs();
+  }, [activeTab]); // Refresh when tab changes
 
   // Setlist State
   const [eventName, setEventName] = useState('');
@@ -150,7 +227,7 @@ export default function SetlistPage() {
 
   // Add Item
   const addItem = (songId?: number) => {
-    const song = songs?.find(s => s.id === Number(songId));
+    const song = songs.find(s => s.id === Number(songId));
     const newItem: SetlistItem = {
       id: crypto.randomUUID(),
       trackOrder: items.length + 1,
@@ -170,7 +247,7 @@ export default function SetlistPage() {
       if (item.id === id) {
         // If song is changed, update title and duration
         if (field === 'songId') {
-          const song = songs?.find(s => s.id === Number(value));
+          const song = songs.find(s => s.id === Number(value));
           if (song) {
             return { 
               ...item, 
@@ -212,25 +289,51 @@ export default function SetlistPage() {
 
     // Add audio files
     let hasAudio = false;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.songId) {
-            const song = await db.songs.get(item.songId);
-            if (song && song.fileData) {
-                const ext = song.fileName?.split('.').pop() || 'mp3';
-                const fileName = `${String(i + 1).padStart(2, '0')}_${item.title.replace(/[\/\\:*?"<>|]/g, '_')}.${ext}`;
-                folder?.file(fileName, song.fileData);
-                hasAudio = true;
+    // Show loading indicator usually, but here we just block/alert
+    
+    try {
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.songId) {
+                const song = songs.find(s => s.id === item.songId);
+                // Check if we need to fetch 'file_path' from song object
+                // The 'Song' interface in types/index.ts should have filePath now,
+                // but if supabase returns snake_case 'file_path', we need to handle it.
+                // Assuming we mapped it or cast it.
+                const path = song?.filePath || (song as any).file_path;
+
+                if (path) {
+                    // Download from Supabase Storage
+                    const { data, error } = await supabase.storage
+                        .from('songs')
+                        .download(path);
+
+                    if (error) {
+                        console.error(`Failed to download song: ${item.title}`, error);
+                        continue;
+                    }
+
+                    if (data) {
+                        const fileNameStr = song?.fileName || (song as any).file_name || 'audio.mp3';
+                        const ext = fileNameStr.split('.').pop() || 'mp3';
+                        const fileName = `${String(i + 1).padStart(2, '0')}_${item.title.replace(/[\/\\:*?"<>|]/g, '_')}.${ext}`;
+                        folder?.file(fileName, data);
+                        hasAudio = true;
+                    }
+                }
             }
         }
-    }
 
-    if (!hasAudio) {
-        alert("音源が登録されている曲がありません。リストのみダウンロードします。");
-    }
+        if (!hasAudio) {
+            alert("音源が登録されている曲がありません、またはダウンロードに失敗しました。リストのみダウンロードします。");
+        }
 
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, `${eventName || 'setlist'}_${date}.zip`);
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `${eventName || 'setlist'}_${date}.zip`);
+    } catch (e) {
+        console.error("ZIP generation error", e);
+        alert("ダウンロード処理中にエラーが発生しました。");
+    }
   };
 
   return (
@@ -375,7 +478,7 @@ export default function SetlistPage() {
                             className="w-full p-1 border rounded text-xs"
                           >
                             <option value="">(楽曲選択)</option>
-                            {songs?.map(s => (
+                            {songs.map(s => (
                               <option key={s.id} value={s.id}>{s.title} ({formatTime(s.duration)})</option>
                             ))}
                           </select>
@@ -590,4 +693,3 @@ export default function SetlistPage() {
     </div>
   );
 }
-

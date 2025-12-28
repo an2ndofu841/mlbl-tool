@@ -27,11 +27,12 @@ export interface AppSettings {
 }
 
 export interface Song {
-  id?: number; // Dexie auto-increment
+  id?: number;
   title: string;
   duration: number; // 秒単位
-  fileData?: Blob; // 音源データ
+  filePath?: string; // Supabase Storage path
   fileName?: string; // ファイル名
+  fileUrl?: string; // 再生用URL (一時的)
   createdAt: Date;
 }
 
