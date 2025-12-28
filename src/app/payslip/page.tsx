@@ -287,7 +287,7 @@ export default function PayslipPage() {
                 </thead>
                 <tbody>
                     <tr>
-                    <td className="border border-gray-800 p-2 text-black">WithLIVE支給額 <span className="text-xs text-gray-700 font-medium ml-2">(売上: {Number(formData.withLiveSales).toLocaleString()}円)</span></td>
+                    <td className="border border-gray-800 p-2 text-black">WithLIVE支給額</td>
                     <td className="border border-gray-800 p-2 text-right text-black font-mono text-base">{withLivePayment.toLocaleString()}</td>
                     </tr>
                     <tr>
