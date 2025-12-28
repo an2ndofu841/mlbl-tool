@@ -67,7 +67,10 @@ const SongManager = () => {
 
         const { error: uploadError } = await supabase.storage
           .from('songs')
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) throw uploadError;
 
@@ -252,7 +255,10 @@ export default function SetlistPage() {
 
         const { error: uploadError } = await supabase.storage
           .from('songs')
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) throw uploadError;
 
