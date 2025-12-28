@@ -302,7 +302,7 @@ export default function SetlistPage() {
   const [eventName, setEventName] = useState('');
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [artistName, setArtistName] = useState('');
+  const [artistName, setArtistName] = useState('CrazyFantasy');
   const [memberCount, setMemberCount] = useState<number>(0);
   const [micCount, setMicCount] = useState<number>(0);
   const [durationLimit, setDurationLimit] = useState<number>(30); // minutes
