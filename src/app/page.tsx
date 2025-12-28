@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Users, Briefcase, ArrowRight } from "lucide-react";
+import { FileText, Users, Briefcase, ArrowRight, Music } from "lucide-react";
 
 export default function Home() {
   const tools = [
@@ -50,6 +50,14 @@ export default function Home() {
       icon: <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       gradient: "from-rose-500 to-red-500",
       shadow: "shadow-rose-500/20"
+    },
+    {
+      title: "セットリスト作成",
+      description: "PA向けのセットリスト作成とCD用データ出力を行います。",
+      href: "/setlist",
+      icon: <Music className="w-8 h-8 text-white" />,
+      gradient: "from-violet-500 to-purple-500",
+      shadow: "shadow-violet-500/20"
     }
   ];
 
