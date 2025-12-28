@@ -423,7 +423,7 @@ export default function SetlistPage() {
       songId: songId ? Number(songId) : undefined,
       title: song ? song.title : '',
       duration: song ? song.duration : 0,
-      triggerType: 'カウント',
+      triggerType: '音先',
       soundRequest: '',
       lightRequest: '',
       notes: ''
