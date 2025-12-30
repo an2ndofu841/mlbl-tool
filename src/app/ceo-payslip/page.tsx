@@ -366,6 +366,18 @@ export default function CeoPayslipPage() {
                 <p className="text-sm font-serif">対象年月: {formData.targetYearMonth}</p>
             </div>
 
+            {/* 印鑑画像：右上の余白に表示 */}
+            <div className="absolute top-8 right-8 opacity-80 pointer-events-none mix-blend-multiply">
+                <img 
+                src={settings.stampImageUrl || "/inkanmlbl.png"}
+                alt="社印" 
+                className="w-24 h-24 object-contain"
+                onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                }}
+                />
+            </div>
+
             {/* 宛名・会社名 */}
             <div className="flex justify-between items-start mb-8">
                 <div className="w-1/2">
@@ -376,17 +388,6 @@ export default function CeoPayslipPage() {
                 <h3 className="font-bold text-lg mb-1 tracking-wide">{settings.companyName}</h3>
                 <p className="text-sm" style={{ color: '#1f2937' }}>支給日: {formData.paymentDate}</p>
                 
-                {/* 印鑑画像プレースホルダー */}
-                <div className="absolute right-0 top-8 opacity-80 pointer-events-none mix-blend-multiply">
-                    <img 
-                    src={settings.stampImageUrl || "/inkanmlbl.png"}
-                    alt="社印" 
-                    className="w-24 h-24 object-contain"
-                    onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                    }}
-                    />
-                </div>
                 </div>
             </div>
 
