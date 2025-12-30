@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { SettingsProvider } from "@/context/SettingsContext";
 import Header from "@/components/Header";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const notoSansJP = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sans-jp",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900 min-h-screen flex flex-col`}
+        className={`${notoSansJP.variable} font-sans antialiased bg-slate-50 text-slate-900 min-h-screen flex flex-col`}
       >
         <SettingsProvider>
           <Header />
