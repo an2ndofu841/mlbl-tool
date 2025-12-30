@@ -25,6 +25,7 @@ export interface AppSettings {
   employeeWithLiveRatio: number; // 0.7 (売上掛率)
   employeeRewardRatio: number; // 0.5 (報酬掛率)
   products: Record<string, Product>;
+  stampImageUrl?: string; // 印鑑画像のURL
 }
 
 export interface Song {

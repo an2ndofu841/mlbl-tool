@@ -379,7 +379,7 @@ export default function CeoPayslipPage() {
                 {/* 印鑑画像プレースホルダー */}
                 <div className="absolute right-0 top-8 opacity-80 pointer-events-none mix-blend-multiply">
                     <img 
-                    src="/inkanmlbl.png" 
+                    src={settings.stampImageUrl || "/inkanmlbl.png"}
                     alt="社印" 
                     className="w-24 h-24 object-contain"
                     onError={(e) => {

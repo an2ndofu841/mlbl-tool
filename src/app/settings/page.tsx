@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useSettings } from "@/context/SettingsContext";
-import { Save, RotateCcw, Building2, Calculator, ShoppingCart, Plus, Trash2 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { Save, RotateCcw, Building2, Calculator, ShoppingCart, Upload, Image as ImageIcon } from "lucide-react";
 import { Product } from "@/types";
 
 export default function SettingsPage() {
   const { settings, updateSettings, resetSettings, isLoading } = useSettings();
   const [localSettings, setLocalSettings] = useState(settings);
   const [isDirty, setIsDirty] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -37,6 +39,45 @@ export default function SettingsPage() {
       },
     }));
     setIsDirty(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `stamp_${Date.now()}.${fileExt}`;
+      const filePath = `company-assets/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('images') // Using 'images' bucket (or whatever user creates)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get Public URL
+      const { data } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      setLocalSettings(prev => ({
+        ...prev,
+        stampImageUrl: data.publicUrl
+      }));
+      setIsDirty(true);
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('画像のアップロードに失敗しました。Supabase Storageの設定（imagesバケットの作成など）を確認してください。');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSave = () => {
@@ -100,6 +141,42 @@ export default function SettingsPage() {
                 step="0.01"
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500"
               />
+            </div>
+            
+            {/* 印鑑画像アップロード */}
+            <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">社印画像</label>
+                <div className="flex items-start gap-4">
+                    <div className="w-24 h-24 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden relative">
+                        {localSettings.stampImageUrl ? (
+                            <img src={localSettings.stampImageUrl} alt="社印" className="w-full h-full object-contain" />
+                        ) : (
+                            <ImageIcon className="text-slate-300" size={32} />
+                        )}
+                        {isUploading && (
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1">
+                        <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors text-sm font-bold">
+                            <Upload size={16} />
+                            画像を選択...
+                            <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                disabled={isUploading}
+                            />
+                        </label>
+                        <p className="text-xs text-slate-400 mt-2">
+                            PNG, JPG形式 (背景透過推奨)<br/>
+                            Supabase Storageへの保存となります
+                        </p>
+                    </div>
+                </div>
             </div>
           </div>
         </section>

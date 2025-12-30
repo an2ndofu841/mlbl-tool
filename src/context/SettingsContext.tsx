@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   employeeWithLiveRatio: 70, // %単位
   employeeRewardRatio: 50, // %単位
   products: DEFAULT_PRODUCTS,
+  stampImageUrl: undefined,
 };
 
 interface SettingsContextType {
