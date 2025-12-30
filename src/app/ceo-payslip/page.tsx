@@ -4,10 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import { Employee } from "@/types";
 import { useSettings } from "@/context/SettingsContext";
 import { supabase } from "@/lib/supabaseClient";
-import { Download, RefreshCw, ChevronLeft, Calendar, Wallet, FileText, User } from "lucide-react";
+import { Download, RefreshCw, ChevronLeft, Calendar, Wallet, FileText, User, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+interface CustomItem {
+  id: string;
+  name: string;
+  amount: number;
+  type: "payment" | "deduction"; // 支給 or 控除
+}
 
 export default function CeoPayslipPage() {
   const { settings, isLoading: settingsLoading } = useSettings();
@@ -30,6 +37,8 @@ export default function CeoPayslipPage() {
     operatingExpenses: 0,
     remarks: "",
   });
+
+  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -100,12 +109,50 @@ export default function CeoPayslipPage() {
     }));
   };
 
+  const handleAddCustomItem = () => {
+    setCustomItems([
+      ...customItems,
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        amount: 0,
+        type: "payment",
+      },
+    ]);
+  };
+
+  const handleCustomItemChange = (id: string, field: keyof CustomItem, value: any) => {
+    setCustomItems(
+      customItems.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const handleRemoveCustomItem = (id: string) => {
+    setCustomItems(customItems.filter((item) => item.id !== id));
+  };
+
   // 自動計算
   const withLiveIncome = Math.floor(formData.withLiveSales * (settings.ceoWithLiveRatio / 100)); 
   const withLivePayment = Math.floor(withLiveIncome * (settings.ceoRewardRatio / 100));
-  const totalPayment = formData.operatingExpenses + withLivePayment;
+  
+  // カスタム項目の合計
+  const customPaymentTotal = customItems
+    .filter(item => item.type === "payment")
+    .reduce((sum, item) => sum + item.amount, 0);
+
+  const customDeductionTotal = customItems
+    .filter(item => item.type === "deduction")
+    .reduce((sum, item) => sum + item.amount, 0);
+
+  const totalPayment = formData.operatingExpenses + withLivePayment + customPaymentTotal;
+
   const tax = Math.floor(totalPayment * (settings.taxRate / 100));
-  const grandTotal = totalPayment - tax;
+  
+  const totalDeduction = tax + customDeductionTotal;
+
+  const grandTotal = totalPayment - totalDeduction;
 
   const handleDownloadPdf = async () => {
     if (!previewRef.current) return;
@@ -222,6 +269,71 @@ export default function CeoPayslipPage() {
                 </div>
             </div>
 
+            {/* 任意項目 */}
+            <div className="pt-2">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
+                    <div className="flex items-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-wider">
+                        <Plus size={14} /> 任意調整項目 (立替金返済など)
+                    </div>
+                    <button
+                        onClick={handleAddCustomItem}
+                        className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                    >
+                        <Plus size={12} /> 追加
+                    </button>
+                </div>
+                
+                <div className="space-y-3 mb-4">
+                    {customItems.length === 0 && (
+                        <div className="text-sm text-slate-400 text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                            調整項目はありません
+                        </div>
+                    )}
+                    {customItems.map((item) => (
+                        <div key={item.id} className="flex gap-2 items-start bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="grid grid-cols-12 gap-2 w-full">
+                                <div className="col-span-5">
+                                    <label className="block text-[10px] text-slate-500 mb-1">項目名</label>
+                                    <input
+                                        type="text"
+                                        value={item.name}
+                                        onChange={(e) => handleCustomItemChange(item.id, "name", e.target.value)}
+                                        className="w-full p-2 bg-white border border-slate-200 rounded text-sm"
+                                        placeholder="例: 立替金返済"
+                                    />
+                                </div>
+                                <div className="col-span-3">
+                                    <label className="block text-[10px] text-slate-500 mb-1">種別</label>
+                                    <select
+                                        value={item.type}
+                                        onChange={(e) => handleCustomItemChange(item.id, "type", e.target.value)}
+                                        className="w-full p-2 bg-white border border-slate-200 rounded text-sm"
+                                    >
+                                        <option value="payment">支給 (+)</option>
+                                        <option value="deduction">控除 (-)</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-4">
+                                    <label className="block text-[10px] text-slate-500 mb-1">金額</label>
+                                    <input
+                                        type="number"
+                                        value={item.amount}
+                                        onChange={(e) => handleCustomItemChange(item.id, "amount", Number(e.target.value))}
+                                        className="w-full p-2 bg-white border border-slate-200 rounded text-sm text-right font-mono"
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleRemoveCustomItem(item.id)}
+                                className="mt-6 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded transition-colors"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* 備考 */}
             <div className="pt-2">
                 <div className="flex items-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-wider border-b border-slate-100 pb-2 mb-4">
@@ -296,6 +408,12 @@ export default function CeoPayslipPage() {
                     <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>WithLIVE支給額</td>
                     <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{withLivePayment.toLocaleString()}</td>
                     </tr>
+                    {customItems.filter(item => item.type === "payment").map(item => (
+                        <tr key={item.id}>
+                            <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>{item.name || "(名称未設定)"}</td>
+                            <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{item.amount.toLocaleString()}</td>
+                        </tr>
+                    ))}
                     <tr className="font-bold">
                     <td className="border p-2" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>支給合計</td>
                     <td className="border p-2 text-right font-mono text-base" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>{totalPayment.toLocaleString()}</td>
@@ -317,9 +435,15 @@ export default function CeoPayslipPage() {
                     <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>源泉所得税 <span className="text-xs font-medium ml-2" style={{ color: '#374151' }}>(支給合計の{settings.taxRate}%)</span></td>
                     <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{tax.toLocaleString()}</td>
                     </tr>
+                    {customItems.filter(item => item.type === "deduction").map(item => (
+                        <tr key={item.id}>
+                            <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>{item.name || "(名称未設定)"}</td>
+                            <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{item.amount.toLocaleString()}</td>
+                        </tr>
+                    ))}
                     <tr className="font-bold">
                     <td className="border p-2" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>控除合計</td>
-                    <td className="border p-2 text-right font-mono text-base" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>{tax.toLocaleString()}</td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>{totalDeduction.toLocaleString()}</td>
                     </tr>
                 </tbody>
                 </table>
