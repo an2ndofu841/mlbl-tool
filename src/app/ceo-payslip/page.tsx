@@ -231,12 +231,12 @@ export default function CeoPayslipPage() {
             {/* 宛名・会社名 */}
             <div className="flex justify-between items-start mb-12">
                 <div className="w-1/2">
-                <h2 className="text-xl font-bold border-b border-gray-400 pb-1 mb-2 inline-block min-w-[200px]">{formData.name} 様</h2>
+                <h2 className="text-xl font-bold border-b pb-1 mb-2 inline-block min-w-[200px]" style={{ borderColor: '#9ca3af' }}>{formData.name} 様</h2>
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{formData.address}</p>
                 </div>
                 <div className="w-1/2 text-right relative">
                 <h3 className="font-bold text-lg mb-1 tracking-wide">{settings.companyName}</h3>
-                <p className="text-sm text-gray-800">支給日: {formData.paymentDate}</p>
+                <p className="text-sm" style={{ color: '#1f2937' }}>支給日: {formData.paymentDate}</p>
                 
                 {/* 印鑑画像プレースホルダー */}
                 <div className="absolute right-0 top-8 opacity-80 pointer-events-none mix-blend-multiply">
@@ -254,46 +254,46 @@ export default function CeoPayslipPage() {
 
             {/* 明細テーブル */}
             <div className="mb-8">
-                <table className="w-full border-collapse border border-gray-800 text-sm">
+                <table className="w-full border-collapse border text-sm" style={{ borderColor: '#1f2937' }}>
                 <thead>
                     <tr className="text-center">
-                    <th className="border border-gray-800 p-2 w-1/2" style={{ backgroundColor: '#e0e7ff', color: '#000000', fontWeight: 'bold' }}>支給項目</th>
-                    <th className="border border-gray-800 p-2 w-1/2" style={{ backgroundColor: '#e0e7ff', color: '#000000', fontWeight: 'bold' }}>金額 (円)</th>
+                    <th className="border p-2 w-1/2" style={{ backgroundColor: '#e0e7ff', color: '#000000', fontWeight: 'bold', borderColor: '#1f2937' }}>支給項目</th>
+                    <th className="border p-2 w-1/2" style={{ backgroundColor: '#e0e7ff', color: '#000000', fontWeight: 'bold', borderColor: '#1f2937' }}>金額 (円)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                    <td className="border border-gray-800 p-2 text-black">運営費</td>
-                    <td className="border border-gray-800 p-2 text-right text-black font-mono text-base">{Number(formData.operatingExpenses).toLocaleString()}</td>
+                    <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>運営費</td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{Number(formData.operatingExpenses).toLocaleString()}</td>
                     </tr>
                     <tr>
-                    <td className="border border-gray-800 p-2 text-black">WithLIVE支給額</td>
-                    <td className="border border-gray-800 p-2 text-right text-black font-mono text-base">{withLivePayment.toLocaleString()}</td>
+                    <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>WithLIVE支給額</td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{withLivePayment.toLocaleString()}</td>
                     </tr>
                     <tr className="font-bold">
-                    <td className="border border-gray-800 p-2 text-black" style={{ backgroundColor: '#f8fafc' }}>支給合計</td>
-                    <td className="border border-gray-800 p-2 text-right text-black font-mono text-base" style={{ backgroundColor: '#f8fafc' }}>{totalPayment.toLocaleString()}</td>
+                    <td className="border p-2" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>支給合計</td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>{totalPayment.toLocaleString()}</td>
                     </tr>
                 </tbody>
                 </table>
             </div>
 
             <div className="mb-8">
-                <table className="w-full border-collapse border border-gray-800 text-sm">
+                <table className="w-full border-collapse border text-sm" style={{ borderColor: '#1f2937' }}>
                 <thead>
                     <tr className="text-center">
-                    <th className="border border-gray-800 p-2 w-1/2" style={{ backgroundColor: '#fee2e2', color: '#000000', fontWeight: 'bold' }}>控除項目</th>
-                    <th className="border border-gray-800 p-2 w-1/2" style={{ backgroundColor: '#fee2e2', color: '#000000', fontWeight: 'bold' }}>金額 (円)</th>
+                    <th className="border p-2 w-1/2" style={{ backgroundColor: '#fee2e2', color: '#000000', fontWeight: 'bold', borderColor: '#1f2937' }}>控除項目</th>
+                    <th className="border p-2 w-1/2" style={{ backgroundColor: '#fee2e2', color: '#000000', fontWeight: 'bold', borderColor: '#1f2937' }}>金額 (円)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                    <td className="border border-gray-800 p-2 text-black">源泉所得税 <span className="text-xs text-gray-700 font-medium ml-2">(支給合計の{settings.taxRate}%)</span></td>
-                    <td className="border border-gray-800 p-2 text-right text-black font-mono text-base">{tax.toLocaleString()}</td>
+                    <td className="border p-2" style={{ color: '#000000', borderColor: '#1f2937' }}>源泉所得税 <span className="text-xs font-medium ml-2" style={{ color: '#374151' }}>(支給合計の{settings.taxRate}%)</span></td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ color: '#000000', borderColor: '#1f2937' }}>{tax.toLocaleString()}</td>
                     </tr>
                     <tr className="font-bold">
-                    <td className="border border-gray-800 p-2 text-black" style={{ backgroundColor: '#f8fafc' }}>控除合計</td>
-                    <td className="border border-gray-800 p-2 text-right text-black font-mono text-base" style={{ backgroundColor: '#f8fafc' }}>{tax.toLocaleString()}</td>
+                    <td className="border p-2" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>控除合計</td>
+                    <td className="border p-2 text-right font-mono text-base" style={{ backgroundColor: '#f8fafc', color: '#000000', borderColor: '#1f2937' }}>{tax.toLocaleString()}</td>
                     </tr>
                 </tbody>
                 </table>
@@ -310,20 +310,20 @@ export default function CeoPayslipPage() {
             </div>
 
             {/* 振込先情報表示 */}
-            <div className="mb-8 border border-gray-800 p-4 rounded-sm text-sm">
-                <h4 className="font-bold mb-2 text-black border-b border-gray-300 pb-1 inline-block">振込先情報</h4>
+            <div className="mb-8 border p-4 rounded-sm text-sm" style={{ borderColor: '#1f2937' }}>
+                <h4 className="font-bold mb-2 text-black border-b pb-1 inline-block" style={{ borderColor: '#d1d5db' }}>振込先情報</h4>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
-                <div><span className="text-gray-600 font-medium text-xs">銀行名:</span> <span className="text-black ml-2 font-medium">{formData.bankName}</span></div>
-                <div><span className="text-gray-600 font-medium text-xs">支店名:</span> <span className="text-black ml-2 font-medium">{formData.branchName}</span></div>
-                <div><span className="text-gray-600 font-medium text-xs">口座種別:</span> <span className="text-black ml-2 font-medium">{formData.accountType}</span></div>
-                <div><span className="text-gray-600 font-medium text-xs">口座番号:</span> <span className="text-black ml-2 font-medium font-mono">{formData.accountNumber}</span></div>
-                <div className="col-span-2 border-t border-dashed border-gray-300 pt-2 mt-1"><span className="text-gray-600 font-medium text-xs">口座名義:</span> <span className="text-black ml-2 font-medium">{formData.accountHolder}</span></div>
+                <div><span className="font-medium text-xs" style={{ color: '#4b5563' }}>銀行名:</span> <span className="text-black ml-2 font-medium">{formData.bankName}</span></div>
+                <div><span className="font-medium text-xs" style={{ color: '#4b5563' }}>支店名:</span> <span className="text-black ml-2 font-medium">{formData.branchName}</span></div>
+                <div><span className="font-medium text-xs" style={{ color: '#4b5563' }}>口座種別:</span> <span className="text-black ml-2 font-medium">{formData.accountType}</span></div>
+                <div><span className="font-medium text-xs" style={{ color: '#4b5563' }}>口座番号:</span> <span className="text-black ml-2 font-medium font-mono">{formData.accountNumber}</span></div>
+                <div className="col-span-2 border-t border-dashed pt-2 mt-1" style={{ borderColor: '#d1d5db' }}><span className="font-medium text-xs" style={{ color: '#4b5563' }}>口座名義:</span> <span className="text-black ml-2 font-medium">{formData.accountHolder}</span></div>
                 </div>
             </div>
 
             {/* 備考欄 */}
-            <div className="border border-gray-800 p-4 rounded-sm min-h-[100px] text-sm">
-                <h4 className="font-bold mb-2 text-black border-b border-gray-300 pb-1 inline-block">備考</h4>
+            <div className="border p-4 rounded-sm min-h-[100px] text-sm" style={{ borderColor: '#1f2937' }}>
+                <h4 className="font-bold mb-2 text-black border-b pb-1 inline-block" style={{ borderColor: '#d1d5db' }}>備考</h4>
                 <p className="whitespace-pre-wrap text-black mt-2 leading-relaxed">{formData.remarks}</p>
             </div>
 
