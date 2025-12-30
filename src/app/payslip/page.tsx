@@ -14,6 +14,7 @@ interface CustomItem {
   name: string;
   amount: number;
   type: "payment" | "deduction"; // 支給 or 控除
+  isTaxable?: boolean; // 源泉税対象かどうか（支給のみ）
 }
 
 export default function PayslipPage() {
@@ -120,6 +121,7 @@ export default function PayslipPage() {
         name: "",
         amount: 0,
         type: "payment", // デフォルトは支給（プラス）
+        isTaxable: true, // デフォルトは課税対象
       },
     ]);
   };
@@ -157,7 +159,20 @@ export default function PayslipPage() {
     formData.goods +
     customPaymentTotal; // 支給合計にカスタム支給を追加
 
-  const tax = Math.floor(totalPayment * (settings.taxRate / 100));
+  // 源泉税対象額の計算 (カスタム項目で非課税のものを除外)
+  const customTaxableTotal = customItems
+    .filter(item => item.type === "payment" && item.isTaxable !== false)
+    .reduce((sum, item) => sum + item.amount, 0);
+
+  const taxablePayment = 
+    withLivePayment + 
+    formData.offMeeting + 
+    formData.cheki + 
+    formData.showroom + 
+    formData.goods +
+    customTaxableTotal;
+
+  const tax = Math.floor(taxablePayment * (settings.taxRate / 100));
   
   // 控除合計 = 税金 + カスタム控除
   const totalDeduction = tax + customDeductionTotal;
@@ -328,14 +343,27 @@ export default function PayslipPage() {
                                 </div>
                                 <div className="col-span-3">
                                     <label className="block text-[10px] text-slate-500 mb-1">種別</label>
-                                    <select
-                                        value={item.type}
-                                        onChange={(e) => handleCustomItemChange(item.id, "type", e.target.value)}
-                                        className="w-full p-2 bg-white border border-slate-200 rounded text-sm"
-                                    >
-                                        <option value="payment">支給 (+)</option>
-                                        <option value="deduction">控除 (-)</option>
-                                    </select>
+                                    <div className="flex flex-col gap-1">
+                                        <select
+                                            value={item.type}
+                                            onChange={(e) => handleCustomItemChange(item.id, "type", e.target.value)}
+                                            className="w-full p-2 bg-white border border-slate-200 rounded text-sm"
+                                        >
+                                            <option value="payment">支給 (+)</option>
+                                            <option value="deduction">控除 (-)</option>
+                                        </select>
+                                        {item.type === "payment" && (
+                                            <label className="flex items-center gap-1.5 text-[10px] text-slate-500 cursor-pointer select-none">
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={item.isTaxable !== false}
+                                                    onChange={(e) => handleCustomItemChange(item.id, "isTaxable", e.target.checked)}
+                                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                                                />
+                                                源泉税対象
+                                            </label>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="col-span-4">
                                     <label className="block text-[10px] text-slate-500 mb-1">金額</label>

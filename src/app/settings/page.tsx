@@ -80,8 +80,8 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSave = () => {
-    updateSettings(localSettings);
+  const handleSave = async () => {
+    await updateSettings(localSettings);
     setIsDirty(false);
     alert("設定を保存しました");
   };
