@@ -7,6 +7,7 @@ export interface Employee {
   accountType: string; // 普通・当座など
   accountNumber: string;
   accountHolder: string;
+  createdAt?: string;
 }
 
 export interface Product {

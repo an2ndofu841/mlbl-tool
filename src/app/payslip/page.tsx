@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Employee } from "@/types";
 import { useSettings } from "@/context/SettingsContext";
+import { supabase } from "@/lib/supabaseClient";
 import { Calendar, Download, RefreshCw, ChevronLeft, Wallet, User, FileText } from "lucide-react";
 import Link from "next/link";
 import html2canvas from "html2canvas";
@@ -36,11 +37,36 @@ export default function PayslipPage() {
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem("cf_employees");
-    if (storedData) {
-      setEmployees(JSON.parse(storedData));
-    }
-    setLoading(false);
+    const fetchEmployees = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('employees')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (data) {
+          setEmployees(data.map(e => ({
+            id: e.id,
+            name: e.name,
+            address: e.address,
+            bankName: e.bank_name,
+            branchName: e.branch_name,
+            accountType: e.account_type,
+            accountNumber: e.account_number,
+            accountHolder: e.account_holder,
+            createdAt: e.created_at
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
   }, []);
 
   const handleEmployeeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
