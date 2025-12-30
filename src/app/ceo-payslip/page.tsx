@@ -219,17 +219,17 @@ export default function CeoPayslipPage() {
             <div className="shadow-2xl shadow-slate-400/20 rounded-sm overflow-hidden border border-slate-200">
                 <div 
                 ref={previewRef}
-                className="bg-white p-12 box-border relative min-w-[210mm]"
+                className="bg-white p-8 box-border relative min-w-[210mm]"
                 style={{ width: '210mm', minHeight: '297mm', color: '#000000' }}
                 >
             {/* プレビューヘッダー */}
-            <div className="text-center mb-12 relative">
+            <div className="text-center mb-6 relative">
                 <h1 className="text-2xl font-serif font-bold tracking-widest border-b-2 border-black pb-2 inline-block px-8 mb-2">支払明細書</h1>
                 <p className="text-sm font-serif">対象年月: {formData.targetYearMonth}</p>
             </div>
 
             {/* 宛名・会社名 */}
-            <div className="flex justify-between items-start mb-12">
+            <div className="flex justify-between items-start mb-8">
                 <div className="w-1/2">
                 <h2 className="text-xl font-bold border-b pb-1 mb-2 inline-block min-w-[200px]" style={{ borderColor: '#9ca3af' }}>{formData.name} 様</h2>
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{formData.address}</p>
@@ -253,7 +253,7 @@ export default function CeoPayslipPage() {
             </div>
 
             {/* 明細テーブル */}
-            <div className="mb-8">
+            <div className="mb-6">
                 <table className="w-full border-collapse border text-sm" style={{ borderColor: '#1f2937' }}>
                 <thead>
                     <tr className="text-center">
@@ -278,7 +278,7 @@ export default function CeoPayslipPage() {
                 </table>
             </div>
 
-            <div className="mb-8">
+            <div className="mb-6">
                 <table className="w-full border-collapse border text-sm" style={{ borderColor: '#1f2937' }}>
                 <thead>
                     <tr className="text-center">
@@ -300,7 +300,7 @@ export default function CeoPayslipPage() {
             </div>
 
             {/* 差引支給額 */}
-            <div className="flex justify-end mb-12">
+            <div className="flex justify-end mb-8">
                 <div className="w-1/2 border-2 border-black p-4" style={{ backgroundColor: '#f8fafc' }}>
                     <div className="flex justify-between items-end">
                     <span className="font-bold text-lg text-black">差引支給額</span>
@@ -310,7 +310,7 @@ export default function CeoPayslipPage() {
             </div>
 
             {/* 振込先情報表示 */}
-            <div className="mb-8 border p-4 rounded-sm text-sm" style={{ borderColor: '#1f2937' }}>
+            <div className="mb-6 border p-4 rounded-sm text-sm" style={{ borderColor: '#1f2937' }}>
                 <h4 className="font-bold mb-2 text-black border-b pb-1 inline-block" style={{ borderColor: '#d1d5db' }}>振込先情報</h4>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
                 <div><span className="font-medium text-xs" style={{ color: '#4b5563' }}>銀行名:</span> <span className="text-black ml-2 font-medium">{formData.bankName}</span></div>
