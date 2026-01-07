@@ -34,7 +34,7 @@ export default function RootLayout({
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
           </main>
-          <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto">
+          <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto print:hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-500 text-sm">
               &copy; {new Date().getFullYear()} Meshiaga Label. All rights reserved.
             </div>
