@@ -265,6 +265,17 @@ function LabelPreview({
   isPrint?: boolean;
 }) {
   const isJapan = data.country === "Japan";
+  const isUK = data.country === "UK";
+
+  const formatUKPostcode = (code: string) => {
+    if (!code) return "";
+    if (code.includes(" ")) return code;
+    const cleaned = code.replace(/\s+/g, "").toUpperCase();
+    if (cleaned.length < 5) return code;
+    const head = cleaned.slice(0, -3);
+    const tail = cleaned.slice(-3);
+    return `${head} ${tail}`;
+  };
   
   // サイズ定義 (mm換算ではなく、画面表示用の相対サイズまたは印刷時のCSSサイズ)
   // 封筒サイズ想定: 幅広
@@ -281,16 +292,18 @@ function LabelPreview({
     <div className={containerClass} style={{ boxSizing: 'border-box' }}>
       {/* 宛先 */}
       <div className="flex-1">
-        <div className="flex justify-between items-start mb-2">
+        {!isUK && (
+          <div className="flex justify-between items-start mb-2">
             <span className="text-[10px] font-bold border border-slate-800 px-1 py-0.5">
-                TO
+              TO
             </span>
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                {data.country === "Japan" ? "JAPAN" : data.country.toUpperCase()}
+              {data.country === "Japan" ? "JAPAN" : data.country.toUpperCase()}
             </span>
-        </div>
+          </div>
+        )}
         
-        <div className={`font-serif leading-tight ${size === "standard" ? "text-lg" : "text-sm"}`}>
+        <div className={`font-serif leading-tight ${size === "standard" ? "text-lg" : "text-sm"} ${isUK ? "mt-4" : ""}`}>
             <div className="font-bold mb-1">{data.name || "（受取人名）"}</div>
             
             {isJapan ? (
@@ -298,6 +311,17 @@ function LabelPreview({
                     <div>〒 {data.postalCode || "000-0000"}</div>
                     <div>{data.addressLine1 || "（住所1）"}</div>
                     {data.addressLine2 && <div>{data.addressLine2}</div>}
+                </>
+            ) : isUK ? (
+                <>
+                    <div>{data.addressLine1 || "(Address Line 1)"}</div>
+                    {data.addressLine2 && <div>{data.addressLine2}</div>}
+                    <div>
+                        <span className="uppercase">{data.city || "(City)"}</span>
+                        {" "}
+                        {formatUKPostcode(data.postalCode || "")}
+                    </div>
+                    <div className="font-bold mt-1 uppercase">UNITED KINGDOM</div>
                 </>
             ) : (
                 <>
