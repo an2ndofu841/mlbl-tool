@@ -318,11 +318,9 @@ function LabelPreview({
                 <>
                     <div>{data.addressLine1 || "(Address Line 1)"}</div>
                     {data.addressLine2 && <div>{data.addressLine2}</div>}
-                    <div>
-                        <span className="uppercase">{data.city || "(City)"}</span>
-                        {" "}
-                        {formatUKPostcode(data.postalCode || "")}
-                    </div>
+                    <div className="uppercase">{data.city || "(City)"}</div>
+                    {data.state && <div>{data.state}</div>}
+                    <div>{formatUKPostcode(data.postalCode || "")}</div>
                     <div className="font-bold mt-1 uppercase">UNITED KINGDOM</div>
                 </>
             ) : (
