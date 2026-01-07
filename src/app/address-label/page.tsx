@@ -20,7 +20,9 @@ interface AddressData {
 const COMPANY_ADDRESS = {
   zip: "150-0044",
   address: "東京都渋谷区円山町5番3号 MIEUX渋谷ビル8階",
+  addressEn: "MIEUX Shibuya Bldg 8F, 5-3 Maruyama-cho, Shibuya-ku, Tokyo",
   name: "株式会社めしあがレーベル",
+  nameEn: "Meshiaga Label Inc.",
 };
 
 export default function AddressLabelPage() {
@@ -341,13 +343,16 @@ function LabelPreview({
       <div className="mt-4 pt-2 border-t border-slate-300 text-[8px] text-slate-500 flex flex-col">
         <div className="flex justify-between items-end">
             <div>
-                <div className="font-bold text-[9px] mb-0.5">FROM: {COMPANY_ADDRESS.name}</div>
-                <div className="leading-tight">
-                    〒{COMPANY_ADDRESS.zip} {COMPANY_ADDRESS.address}
+                <div className="font-bold text-[9px] mb-0.5">
+                  FROM: {isJapan ? COMPANY_ADDRESS.name : COMPANY_ADDRESS.nameEn}
                 </div>
-            </div>
-            <div className="text-[8px] font-mono opacity-50">
-                CF-TOOL
+                <div className="leading-tight">
+                    {isJapan ? (
+                      <>〒{COMPANY_ADDRESS.zip} {COMPANY_ADDRESS.address}</>
+                    ) : (
+                      <>{COMPANY_ADDRESS.addressEn} {COMPANY_ADDRESS.zip} JAPAN</>
+                    )}
+                </div>
             </div>
         </div>
       </div>
