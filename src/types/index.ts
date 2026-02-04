@@ -74,3 +74,20 @@ export interface Setlist {
   durationLimit: number; // 分単位? 要件では「演奏時間」
   items: SetlistItem[];
 }
+
+export interface LiveSchedule {
+  id: number;
+  title: string;
+  start_at: string;
+  end_at?: string | null;
+  venue?: string | null;
+  price?: string | null;
+  ticket_url?: string | null;
+  announce_image_url?: string | null;
+  notes?: string | null;
+  open_time?: string | null;
+  calendar_event_id?: string | null;
+  last_announced_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}

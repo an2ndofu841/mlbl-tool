@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Users, Briefcase, ArrowRight, Music, Settings } from "lucide-react";
+import { FileText, Users, Briefcase, ArrowRight, Music, Settings, Calendar } from "lucide-react";
 
 export default function Home() {
   const tools = [
@@ -50,6 +50,14 @@ export default function Home() {
       icon: <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       gradient: "from-rose-500 to-red-500",
       shadow: "shadow-rose-500/20"
+    },
+    {
+      title: "Liveスケジュール管理",
+      description: "Live予定の登録と公開カレンダー連携を行います。",
+      href: "/live-schedule",
+      icon: <Calendar className="w-8 h-8 text-white" />,
+      gradient: "from-cyan-500 to-blue-500",
+      shadow: "shadow-cyan-500/20"
     },
     {
       title: "セットリスト作成",
