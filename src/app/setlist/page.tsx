@@ -303,8 +303,8 @@ export default function SetlistPage() {
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [artistName, setArtistName] = useState('CrazyFantasy');
-  const [memberCount, setMemberCount] = useState<number>(0);
-  const [micCount, setMicCount] = useState<number>(0);
+  const [memberCount, setMemberCount] = useState<number>(2);
+  const [micCount, setMicCount] = useState<number>(2);
   const [durationLimit, setDurationLimit] = useState<number>(30); // minutes
 
   const [items, setItems] = useState<SetlistItem[]>([]);
@@ -415,6 +415,9 @@ export default function SetlistPage() {
   };
 
   // Add Item
+  const defaultSoundRequest = 'マイク2大きめでお願いいたします。';
+  const mcSoundRequest = 'MC中音小さめ、はけるときに大きく';
+
   const addItem = (songId?: number) => {
     const song = songs.find(s => s.id === Number(songId));
     const newItem: SetlistItem = {
@@ -424,7 +427,7 @@ export default function SetlistPage() {
       title: song ? song.title : '',
       duration: song ? song.duration : 0,
       triggerType: '音先',
-      soundRequest: '',
+      soundRequest: defaultSoundRequest,
       lightRequest: '',
       notes: ''
     };
@@ -445,6 +448,18 @@ export default function SetlistPage() {
               duration: song.duration 
             };
           }
+        }
+        if (field === 'triggerType') {
+          const nextTrigger = String(value);
+          if (nextTrigger === 'MC') {
+            return { ...item, triggerType: nextTrigger, soundRequest: mcSoundRequest };
+          }
+          const shouldReset = item.soundRequest.trim() === '' || item.soundRequest === mcSoundRequest;
+          return {
+            ...item,
+            triggerType: nextTrigger,
+            soundRequest: shouldReset ? defaultSoundRequest : item.soundRequest,
+          };
         }
         return { ...item, [field]: value };
       }
@@ -780,6 +795,7 @@ export default function SetlistPage() {
                           <option value="音先">音先</option>
                           <option value="板付">板付</option>
                           <option value="曲ふり">曲ふり</option>
+                          <option value="MC">MC</option>
                           <option value="タイトルコール">タイトルコール</option>
                           <option value="カウント">カウント</option>
                         </select>
