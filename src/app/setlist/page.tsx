@@ -308,7 +308,7 @@ export default function SetlistPage() {
   const [durationLimit, setDurationLimit] = useState<number>(30); // minutes
 
   const [items, setItems] = useState<SetlistItem[]>([]);
-  const [otherNotes, setOtherNotes] = useState('');
+  const [otherNotes, setOtherNotes] = useState('マイク2大きめでお願いいたします。');
   const [isUploading, setIsUploading] = useState(false);
 
   // Preset Functions
@@ -415,8 +415,7 @@ export default function SetlistPage() {
   };
 
   // Add Item
-  const defaultSoundRequest = 'マイク2大きめでお願いいたします。';
-  const mcSoundRequest = 'MC中音小さめ、はけるときに大きく';
+  const mcSoundRequest = 'MC中音小さめ、はける時に大きく';
 
   const addItem = (songId?: number) => {
     const song = songs.find(s => s.id === Number(songId));
@@ -427,7 +426,7 @@ export default function SetlistPage() {
       title: song ? song.title : '',
       duration: song ? song.duration : 0,
       triggerType: '音先',
-      soundRequest: defaultSoundRequest,
+      soundRequest: '',
       lightRequest: '',
       notes: ''
     };
@@ -454,11 +453,11 @@ export default function SetlistPage() {
           if (nextTrigger === 'MC') {
             return { ...item, triggerType: nextTrigger, soundRequest: mcSoundRequest };
           }
-          const shouldReset = item.soundRequest.trim() === '' || item.soundRequest === mcSoundRequest;
+          const shouldClear = item.soundRequest === mcSoundRequest;
           return {
             ...item,
             triggerType: nextTrigger,
-            soundRequest: shouldReset ? defaultSoundRequest : item.soundRequest,
+            soundRequest: shouldClear ? '' : item.soundRequest,
           };
         }
         return { ...item, [field]: value };
@@ -849,7 +848,7 @@ export default function SetlistPage() {
             </div>
 
             {/* 印刷用レイアウト (A4) */}
-            <div className="hidden print:block text-black bg-white p-8 print:absolute print:top-0 print:left-0 print:w-full print:h-full print:z-50">
+            <div className="hidden print:block text-black bg-white p-8 print:static">
               {/* Header */}
               <div className="relative mb-6">
                  <h1 className="text-4xl font-black text-center text-slate-700 tracking-widest uppercase mb-2">SET LIST</h1>
