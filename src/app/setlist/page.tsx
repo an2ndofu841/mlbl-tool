@@ -430,40 +430,42 @@ export default function SetlistPage() {
       lightRequest: '',
       notes: ''
     };
-    setItems([...items, newItem]);
+    setItems(prev => [...prev, newItem]);
   };
 
   const updateItem = (id: string, field: keyof SetlistItem, value: any) => {
-    setItems(items.map(item => {
-      if (item.id === id) {
-        // If song is changed, update title and duration
-        if (field === 'songId') {
-          const song = songs.find(s => s.id === Number(value));
-          if (song) {
-            return { 
-              ...item, 
-              songId: Number(value), 
-              title: song.title, 
-              duration: song.duration 
+    setItems(prev =>
+      prev.map(item => {
+        if (item.id === id) {
+          // If song is changed, update title and duration
+          if (field === 'songId') {
+            const song = songs.find(s => s.id === Number(value));
+            if (song) {
+              return { 
+                ...item, 
+                songId: Number(value), 
+                title: song.title, 
+                duration: song.duration 
+              };
+            }
+          }
+          if (field === 'triggerType') {
+            const nextTrigger = String(value);
+            if (nextTrigger === 'MC') {
+              return { ...item, triggerType: nextTrigger, soundRequest: mcSoundRequest };
+            }
+            const shouldClear = item.soundRequest === mcSoundRequest;
+            return {
+              ...item,
+              triggerType: nextTrigger,
+              soundRequest: shouldClear ? '' : item.soundRequest,
             };
           }
+          return { ...item, [field]: value };
         }
-        if (field === 'triggerType') {
-          const nextTrigger = String(value);
-          if (nextTrigger === 'MC') {
-            return { ...item, triggerType: nextTrigger, soundRequest: mcSoundRequest };
-          }
-          const shouldClear = item.soundRequest === mcSoundRequest;
-          return {
-            ...item,
-            triggerType: nextTrigger,
-            soundRequest: shouldClear ? '' : item.soundRequest,
-          };
-        }
-        return { ...item, [field]: value };
-      }
-      return item;
-    }));
+        return item;
+      })
+    );
   };
 
   const removeItem = (id: string) => {
