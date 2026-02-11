@@ -416,6 +416,10 @@ export default function SetlistPage() {
 
   // Add Item
   const mcSoundRequest = 'MC中音小さめ、はける時に大きく';
+  const isMcTitle = (value: string) => {
+    const trimmed = value.trim();
+    return trimmed === 'MC' || trimmed.startsWith('MC ');
+  };
 
   const addItem = (songId?: number) => {
     const song = songs.find(s => s.id === Number(songId));
@@ -445,9 +449,18 @@ export default function SetlistPage() {
                 ...item, 
                 songId: Number(value), 
                 title: song.title, 
-                duration: song.duration 
+                duration: song.duration,
+                soundRequest: isMcTitle(song.title) ? mcSoundRequest : item.soundRequest
               };
             }
+          }
+          if (field === 'title') {
+            const nextTitle = String(value);
+            return {
+              ...item,
+              title: nextTitle,
+              soundRequest: isMcTitle(nextTitle) ? mcSoundRequest : item.soundRequest,
+            };
           }
           if (field === 'triggerType') {
             const nextTrigger = String(value);
